@@ -1,10 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Plus, Pencil, Trash2, RefreshCcw } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Plus, Pencil, Trash2, RefreshCcw, Search, ImageOff, MapPin, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ImageWithSkeleton } from "@/components/shared/ImageWithSkeleton";
 import {
   Table,
   TableBody,
@@ -14,21 +16,21 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   useAdminFacilities,
   useDeleteFacility,
 } from "@/hooks/useAdminFacilities";
 import { useRegions } from "@/hooks/useRegions";
 import { FacilityForm } from "@/components/admin/FacilityForm";
+import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 import type { Facility, FacilityType } from "@/types/api.generated";
 
 const TYPE_LABELS: Record<FacilityType, string> = {
@@ -37,11 +39,23 @@ const TYPE_LABELS: Record<FacilityType, string> = {
   public_facility: "مرفق عام",
 };
 
+type FilterType = FacilityType | "all";
+
+const TYPE_FILTERS: { value: FilterType; label: string }[] = [
+  { value: "all", label: "الكل" },
+  { value: "restaurant", label: "مطاعم" },
+  { value: "cafe", label: "كافيهات" },
+  { value: "public_facility", label: "مرافق عامة" },
+];
+
 function TableSkeleton() {
   return (
     <TableBody>
       {Array.from({ length: 4 }).map((_, i) => (
         <TableRow key={i}>
+          <TableCell>
+            <Skeleton className="h-10 w-10 rounded-lg" />
+          </TableCell>
           <TableCell>
             <Skeleton className="h-5 w-32" />
           </TableCell>
@@ -66,7 +80,25 @@ function TableSkeleton() {
   );
 }
 
+function FacilityImage({ src, name }: { src: string | null; name: string }) {
+  if (!src) {
+    return (
+      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+        <ImageOff className="h-4 w-4" />
+      </div>
+    );
+  }
+  return (
+    <ImageWithSkeleton
+      src={src}
+      alt={name}
+      className="h-10 w-10 shrink-0 rounded-lg"
+    />
+  );
+}
+
 export default function AdminFacilitiesPage() {
+  const { toast } = useToast();
   const { data, isLoading, error, refetch } = useAdminFacilities();
   const deleteFacility = useDeleteFacility();
   const { data: regions } = useRegions(false);
@@ -77,9 +109,34 @@ export default function AdminFacilitiesPage() {
     return m;
   }, [regions]);
 
+  const allFacilities = data?.items ?? [];
+
+  const [search, setSearch] = useState("");
+  const [debounced, setDebounced] = useState("");
+  const [typeFilter, setTypeFilter] = useState<FilterType>("all");
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editingFacility, setEditingFacility] = useState<Facility | undefined>(undefined);
+
+  useEffect(() => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      setDebounced(search.trim().toLowerCase());
+    }, 300);
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, [search]);
+
+  const filtered = useMemo(() => {
+    return allFacilities.filter((f) => {
+      const matchType = typeFilter === "all" || f.type === typeFilter;
+      const matchSearch = !debounced || f.name.toLowerCase().includes(debounced);
+      return matchType && matchSearch;
+    });
+  }, [allFacilities, debounced, typeFilter]);
 
   async function confirmDelete() {
     if (deletingId === null) return;
@@ -97,7 +154,8 @@ export default function AdminFacilitiesPage() {
     setFormOpen(true);
   }
 
-  const facilities = data?.items ?? [];
+  const hasActiveFilter = typeFilter !== "all" || debounced !== "";
+  const showEmptyForFilter = !isLoading && !error && allFacilities.length > 0 && filtered.length === 0;
 
   return (
     <div className="space-y-6">
@@ -114,10 +172,68 @@ export default function AdminFacilitiesPage() {
         </Button>
       </div>
 
+      {/* Search + Action Buttons */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1 max-w-md">
+          <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="ابحث باسم المنشأة..."
+            className="rounded-full pr-9"
+            aria-label="بحث"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="gap-2 min-h-[44px]"
+            onClick={() => toast({ title: "قريبًا" })}
+          >
+            <MapPin className="h-4 w-4" />
+            عرض الخريطة
+          </Button>
+          <Button
+            variant="outline"
+            className="gap-2 min-h-[44px]"
+            onClick={() => toast({ title: "قريبًا" })}
+          >
+            <Download className="h-4 w-4" />
+            تصدير
+          </Button>
+        </div>
+      </div>
+
+      {/* Type filter chips */}
+      <div className="flex flex-wrap gap-2">
+        {TYPE_FILTERS.map((tf) => (
+          <button
+            key={tf.value}
+            onClick={() => setTypeFilter(tf.value)}
+            className={cn(
+              "min-h-[44px] rounded-full border px-4 text-sm font-medium transition-colors",
+              typeFilter === tf.value
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border bg-card text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            )}
+          >
+            {tf.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Results counter */}
+      {!isLoading && (
+        <p className="text-sm text-muted-foreground">
+          عرض {filtered.length} من {data?.total ?? allFacilities.length} منشأة
+        </p>
+      )}
+
       <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-12"> </TableHead>
               <TableHead>الاسم</TableHead>
               <TableHead>النوع</TableHead>
               <TableHead>المنطقة</TableHead>
@@ -131,7 +247,7 @@ export default function AdminFacilitiesPage() {
           ) : error ? (
             <TableBody>
               <TableRow>
-                <TableCell colSpan={6} className="py-10 text-center">
+                <TableCell colSpan={7} className="py-10 text-center">
                   <div className="flex flex-col items-center gap-3">
                     <p className="text-sm text-destructive">
                       تعذّر تحميل المنشآت.
@@ -149,21 +265,45 @@ export default function AdminFacilitiesPage() {
                 </TableCell>
               </TableRow>
             </TableBody>
-          ) : facilities.length === 0 ? (
+          ) : showEmptyForFilter ? (
+            <TableBody>
+              <TableRow>
+                <TableCell colSpan={7} className="py-16 text-center">
+                  <div className="flex flex-col items-center gap-2">
+                    <Search className="h-10 w-10 text-muted-foreground/40" />
+                    <p className="text-sm text-muted-foreground">
+                      لا توجد نتائج تطابق البحث أو الفلتر.
+                    </p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          ) : allFacilities.length === 0 ? (
             <TableBody>
               <TableRow>
                 <TableCell
-                  colSpan={6}
-                  className="py-10 text-center text-sm text-muted-foreground"
+                  colSpan={7}
+                  className="py-16 text-center"
                 >
-                  لا توجد منشآت.
+                  <div className="flex flex-col items-center gap-3">
+                    <p className="text-sm text-muted-foreground">
+                      لا توجد منشآت بعد.
+                    </p>
+                    <Button className="gap-2" onClick={openCreate}>
+                      <Plus className="h-4 w-4" />
+                      أول منشأة
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             </TableBody>
           ) : (
             <TableBody>
-              {facilities.map((facility) => (
+              {filtered.map((facility) => (
                 <TableRow key={facility.id}>
+                  <TableCell>
+                    <FacilityImage src={facility.image_url} name={facility.name} />
+                  </TableCell>
                   <TableCell className="font-medium">
                     {facility.name}
                   </TableCell>
@@ -212,28 +352,33 @@ export default function AdminFacilitiesPage() {
         </Table>
       </div>
 
-      <AlertDialog
+      <Dialog
         open={deletingId !== null}
         onOpenChange={(o) => !o && setDeletingId(null)}
       >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
-            <AlertDialogDescription>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>تأكيد الحذف</DialogTitle>
+            <DialogDescription>
               هل أنت متأكد من حذف هذه المنشأة؟ لا يمكن التراجع عن هذا الإجراء.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setDeletingId(null)}
+            >
+              إلغاء
+            </Button>
+            <Button
+              variant="destructive"
               onClick={confirmDelete}
-              className="bg-destructive text-white hover:bg-destructive/90"
             >
               حذف
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <FacilityForm
         open={formOpen}

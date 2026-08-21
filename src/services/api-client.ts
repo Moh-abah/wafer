@@ -1,8 +1,8 @@
 import { useAuthStore } from "@/store/auth.store";
+import { useOwnerAuthStore } from "@/store/ownerAuth.store";
 
 // const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.wafir.gleeze.com/api/v1";
 const API_BASE = "/api";
-
 
 export class ApiError extends Error {
   status: number;
@@ -70,6 +70,7 @@ async function fetchWithAuth<T>(
   if (response.status === 401) {
     if (typeof window !== "undefined") {
       useAuthStore.getState().clearAuth();
+      useOwnerAuthStore.getState().clearAuth();
     }
     throw new ApiError("انتهت الجلسة. يرجى تسجيل الدخول مجددًا.", 401, null);
   }

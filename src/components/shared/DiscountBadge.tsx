@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { Sparkles } from "lucide-react";
 
 interface DiscountBadgeProps {
   percentage?: number;
@@ -11,14 +12,20 @@ export function DiscountBadge({
   percentage = 30,
   className,
 }: DiscountBadgeProps) {
+  if (!percentage || percentage <= 0) return null;
   return (
     <span
       className={cn(
-        "inline-flex items-center px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold leading-none",
+        "animate-badge-shimmer relative inline-flex items-center gap-1.5 overflow-hidden",
+        "rounded-full px-3 py-1.5",
+        "bg-gradient-to-l from-[#FF2A7A] to-[#FF5E9E]",
+        "text-primary-foreground text-xs font-extrabold leading-none tracking-wide",
+        "shadow-lg shadow-primary/25",
         className
       )}
     >
-      خصم {percentage}%
+      <Sparkles className="h-3 w-3 shrink-0" />
+      <span>خصم {percentage}%</span>
     </span>
   );
 }

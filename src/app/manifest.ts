@@ -14,7 +14,7 @@ export default function manifest(): MetadataRoute.Manifest {
     display: 'standalone',
     icons: [
       {
-        src: '/logowafir.png',
+        src: '/logo.svg',
         sizes: 'any',
         type: 'image/svg+xml',
       },

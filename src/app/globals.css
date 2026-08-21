@@ -133,9 +133,29 @@
     @apply border-border outline-ring/50;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "kern";
+  }
+
+  *:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: var(--primary);
+    color: white;
+  }
+
+  input:focus,
+  textarea:focus {
+    box-shadow: 0 0 0 3px rgba(255, 42, 122, 0.1);
   }
 
   /* Custom scrollbar */
@@ -152,6 +172,12 @@
 
   .scroll-area-thin::-webkit-scrollbar-track {
     background: transparent;
+    border-radius: 9999px;
+  }
+
+  .scroll-area-thin::-webkit-scrollbar-thumb:hover {
+    background: var(--foreground);
+    opacity: 0.6;
   }
 }
 
@@ -234,15 +260,21 @@
   }
 }
 
-/* Respect reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  .animate-hero-gradient,
-  .animate-promo-shimmer,
-  .animate-pulse-glow,
-  .animate-cta-pulse {
-    animation: none;
-  }
+/* Hero pattern drift animation */
+@keyframes hero-pattern-drift {
+  0% { background-position: 0 0; }
+  100% { background-position: 40px 40px; }
 }
+
+.hero-pattern-overlay {
+  background-image: radial-gradient(circle, var(--foreground) 0.5px, transparent 0.5px);
+  background-size: 40px 40px;
+  animation: hero-pattern-drift 20s linear infinite;
+  opacity: 0.03;
+}
+.dark .hero-pattern-overlay { opacity: 0.04; }
+
+/* Animations are defined further below with reduced motion support */
 
 /* Skeleton shimmer utility */
 .skeleton-shimmer {
@@ -255,3 +287,468 @@
   background-size: 200% 100%;
   animation: shimmer 2s infinite linear;
 }
+
+/* Branded skeleton shimmer - uses primary color tint */
+.skeleton-branded {
+  background: linear-gradient(
+    90deg,
+    var(--muted) 25%,
+    color-mix(in srgb, var(--muted) 70%, var(--primary) 15%) 50%,
+    var(--muted) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+/* Float animation for decorative elements */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-float-slow {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-slower {
+  animation: float 8s ease-in-out infinite;
+}
+
+/* Gradient border animation for card hover effects */
+@keyframes gradient-border-rotate {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.gradient-border-animated {
+  position: relative;
+}
+
+.gradient-border-animated::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent), var(--primary));
+  background-size: 300% 300%;
+  animation: gradient-border-rotate 4s ease infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.gradient-border-animated:hover::before {
+  opacity: 1;
+}
+
+/* Card hover glow effect */
+.card-glow {
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+.card-glow:hover {
+  box-shadow: 0 0 20px -5px rgba(255, 42, 122, 0.15);
+}
+
+/* Glass card utility */
+.glass-card {
+  background: color-mix(in srgb, var(--card) 60%, transparent);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid color-mix(in srgb, var(--border) 30%, transparent);
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* Text gradient utility */
+.text-gradient {
+  background: linear-gradient(to left, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Smooth page transition fade-in for main content areas */
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-page-enter {
+  animation: page-fade-in 0.4s ease-out both;
+}
+
+/* Badge shimmer sweep animation */
+@keyframes badge-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.animate-badge-shimmer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: badge-shimmer 2.5s ease-in-out infinite;
+}
+
+/* NProgress-style loading bar animation */
+@keyframes nprogress-loading {
+  0% {
+    width: 0%;
+    opacity: 1;
+  }
+  80% {
+    width: 80%;
+    opacity: 1;
+  }
+  100% {
+    width: 100%;
+    opacity: 0;
+  }
+}
+
+.nprogress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), #ff6b9d, var(--accent));
+  border-radius: 0 4px 4px 0;
+  animation: nprogress-loading 0.8s ease-in-out forwards;
+  pointer-events: none;
+  box-shadow: 0 0 12px rgba(255, 42, 122, 0.5), 0 0 4px rgba(255, 42, 122, 0.3);
+}
+
+.nprogress-bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 80px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: nprogress-shimmer 0.6s ease-in-out infinite;
+}
+
+@keyframes nprogress-shimmer {
+  0% { transform: translateX(-80px); }
+  100% { transform: translateX(80px); }
+}
+
+/* Text balance utility for better multi-line headings */
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Text clip utility for single-line truncation */
+.text-clip {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Subtle noise texture overlay for dark mode background */
+.dark::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* Respect reduced motion - extended */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-hero-gradient,
+  .animate-promo-shimmer,
+  .animate-pulse-glow,
+  .animate-cta-pulse,
+  .animate-cta-glow,
+  .animate-float,
+  .animate-float-slow,
+  .animate-float-slower,
+  .animate-badge-shimmer,
+  .animate-page-enter,
+  .animate-marquee,
+  .animate-scroll-reveal,
+  .animate-dot-breathe,
+  .animate-region-pulse,
+  .nprogress-bar,
+  .nprogress-bar::after,
+  .skeleton-shimmer,
+  .skeleton-branded,
+  .hero-pattern-overlay,
+  .hero-grid-pattern,
+  .link-underline::after {
+    animation: none;
+  }
+  .gradient-border-animated::before,
+  .login-shimmer-card::before,
+  .login-shimmer-card::after,
+  .login-card-shimmer::before {
+    animation: none;
+  }
+  .card-glow {
+    transition: none;
+  }
+  .dark::before {
+    display: none;
+  }
+}
+
+/* Grid pattern overlay for hero section */
+.hero-grid-pattern {
+  background-image:
+    linear-gradient(var(--foreground) 1px, transparent 1px),
+    linear-gradient(90deg, var(--foreground) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* Marquee animation for testimonials */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-50% - 0.5rem));
+  }
+}
+
+.animate-marquee {
+  animation: marquee 40s linear infinite;
+}
+
+/* Fade masks for marquee edges */
+.mask-gradient-x {
+  mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+}
+
+/* CTA glow pulse animation for promo banner */
+@keyframes cta-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px 4px rgba(255, 255, 255, 0.15);
+  }
+}
+
+.animate-cta-glow {
+  animation: cta-glow 2s ease-in-out infinite;
+}
+
+/* Newsletter input border glow animation */
+@keyframes input-border-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 1px var(--border), 0 0 0 0 rgba(255, 42, 122, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 1px var(--primary), 0 0 8px 0 rgba(255, 42, 122, 0.15);
+  }
+}
+
+.animate-newsletter-glow:focus {
+  animation: input-border-glow 2s ease-in-out infinite;
+}
+
+/* Login card shimmer border effect */
+@keyframes login-border-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.login-shimmer-card {
+  position: relative;
+}
+
+.login-shimmer-card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent), var(--primary));
+  background-size: 300% 300%;
+  animation: login-border-shimmer 4s ease infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.login-shimmer-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, transparent 40%, rgba(255, 42, 122, 0.03) 50%, transparent 60%);
+  background-size: 200% 200%;
+  animation: login-border-shimmer 3s ease infinite;
+  pointer-events: none;
+}
+
+.login-card-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.login-card-shimmer::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, rgba(255,42,122,0.15), rgba(0,194,184,0.15), transparent);
+  background-size: 200% 100%;
+  animation: shimmer-border 3s ease-in-out infinite;
+  z-index: -1;
+}
+@keyframes shimmer-border {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Smooth scroll reveal utility */
+@keyframes scroll-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-scroll-reveal {
+  animation: scroll-reveal 0.5s ease-out both;
+}
+
+/* Subtle breathing/pulsing for notification dots */
+@keyframes dot-breathe {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.2); }
+}
+
+.animate-dot-breathe {
+  animation: dot-breathe 2s ease-in-out infinite;
+}
+
+/* Staggered fade-in for list items */
+@keyframes stagger-fade {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Region selector pulse when no region is selected */
+@keyframes region-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 42, 122, 0.3); }
+  50% { box-shadow: 0 0 0 6px rgba(255, 42, 122, 0); }
+}
+
+.animate-region-pulse {
+  animation: region-pulse 2s ease-in-out infinite;
+}
+
+/* Smooth underline animation for links */
+.link-underline {
+  position: relative;
+}
+.link-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  right: 0;
+  width: 0;
+  height: 2px;
+  background: var(--primary);
+  border-radius: 1px;
+  transition: width 0.3s ease;
+}
+.link-underline:hover::after {
+  width: 100%;
+}
+
+/* Table row hover enhancement */
+tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+/* Focus ring for all interactive elements */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Card press effect */
+.card-press {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.card-press:active {
+  transform: scale(0.98);
+}
+
+/* Gradient text utility (secondary) */
+.text-gradient-secondary {
+  background: linear-gradient(to left, var(--secondary), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+

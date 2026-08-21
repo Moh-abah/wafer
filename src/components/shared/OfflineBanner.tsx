@@ -3,13 +3,14 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { WifiOff, RefreshCw, Wifi } from "lucide-react";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 type BannerState = "online" | "offline" | "restored";
 
 export function OfflineBanner() {
   const [bannerState, setBannerState] = useState<BannerState>("online");
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const prefersReduced = useReducedMotion();
+const prefersReduced = usePrefersReducedMotion();
 
   const goOnline = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);

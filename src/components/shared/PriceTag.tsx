@@ -16,24 +16,21 @@ interface PriceTagProps {
 
 export function PriceTag({ price, className, discountedPrice }: PriceTagProps) {
   const formattedPrice = priceFormatter.format(price);
-
-  if (discountedPrice !== undefined) {
-    const formattedDiscounted = priceFormatter.format(discountedPrice);
-    return (
-      <div className={cn("flex items-center gap-2", className)}>
-        <span className="text-base font-bold text-foreground">
-          {formattedDiscounted} ر.س
-        </span>
-        <span className="text-sm text-muted-foreground line-through">
-          {formattedPrice} ر.س
-        </span>
-      </div>
-    );
-  }
+  const discount = discountedPrice !== undefined
+    ? discountedPrice
+    : price * 0.7; // 30% off
+  const formattedDiscounted = priceFormatter.format(discount);
 
   return (
-    <span className={cn("text-base font-bold text-foreground", className)}>
-      {formattedPrice} ر.س
-    </span>
+    <div className={cn("flex flex-col gap-0.5", className)}>
+      {/* Original price with strikethrough */}
+      <span className="text-xs text-muted-foreground line-through">
+        {formattedPrice} ر.س
+      </span>
+      {/* Discounted price */}
+      <span className="text-base font-bold text-foreground">
+        {formattedDiscounted} ر.س
+      </span>
+    </div>
   );
 }

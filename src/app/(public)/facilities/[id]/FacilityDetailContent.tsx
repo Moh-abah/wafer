@@ -2,14 +2,38 @@
 
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion, useInView } from "framer-motion";
 import Link from "next/link";
-import {
-  Phone, MapPin, Clock, Search, ExternalLink,
-  UtensilsCrossed, Coffee, Landmark, ArrowRight, PackageOpen,
+import {  Phone, MapPin, Clock, Search, ExternalLink,
+  UtensilsCrossed, Coffee, Landmark, ArrowRight, PackageOpen, ChevronLeft,
+  Share2, Flag, Check, Heart, Copy, Twitter, MessageCircle,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import { DiscountBadge } from "@/components/shared/DiscountBadge";
 import { ImageWithSkeleton } from "@/components/shared/ImageWithSkeleton";
 import { PriceTag } from "@/components/shared/PriceTag";
@@ -17,14 +41,10 @@ import { ErrorState } from "@/components/shared/ErrorState";
 import { useFacilityProducts, useAllFacilityProducts } from "@/hooks/useFacilityProducts";
 import { useProductCategories } from "@/hooks/useProductCategories";
 import { useFacilities } from "@/hooks/useFacilities";
+import { TYPE_LABEL, SCHEMA_ORG_TYPE } from "@/lib/constants";
 import type { FacilityType, Product } from "@/types/api.generated";
 import { cn } from "@/lib/utils";
-
-const TYPE_LABEL: Record<FacilityType, string> = {
-  restaurant: "مطعم",
-  cafe: "مقهى",
-  public_facility: "مرفق عام",
-};
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 const PRICE_FMT = new Intl.NumberFormat("ar-SA", {
   style: "currency",
@@ -33,8 +53,24 @@ const PRICE_FMT = new Intl.NumberFormat("ar-SA", {
   maximumFractionDigits: 2,
 });
 
+function fallbackCopy(text: string, toastFn: (opts: { title: string; variant?: "destructive" }) => void) {
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    toastFn({ title: "تم نسخ الرابط" });
+  } catch {
+    toastFn({ title: "تعذّر نسخ الرابط", variant: "destructive" });
+  }
+}
+
 /* ─── Product Card ──────────────────────────────────── */
-function ProductCard({ product }: { product: Product }) {
+function ProductCard({ product, onClick }: { product: Product; onClick: () => void }) {
   const price = parseFloat(product.price);
   return (
     <motion.div
@@ -42,8 +78,9 @@ function ProductCard({ product }: { product: Product }) {
         hidden: { opacity: 0, y: 16 },
         visible: { opacity: 1, y: 0, transition: { duration: 0.2, ease: "easeOut" } },
       }}
+      onClick={onClick}
       className={cn(
-        "group rounded-2xl border bg-card overflow-hidden transition-all duration-200",
+        "group cursor-pointer rounded-2xl border bg-card overflow-hidden transition-all duration-200 card-glow",
         "hover:-translate-y-1 hover:shadow-xl hover:shadow-black/10 dark:hover:shadow-black/30",
         !product.is_available && "opacity-60"
       )}
@@ -123,13 +160,153 @@ function EnhancedEmptyState() {
   );
 }
 
+/* ─── Breadcrumbs ────────────────────────────────────── */
+function Breadcrumbs({ facilityName }: { facilityName: string }) {
+const prefersReduced = usePrefersReducedMotion();
+  const containerVariants = prefersReduced
+    ? { hidden: {}, visible: {} }
+    : {
+        hidden: { opacity: 0, y: -6 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" as const } },
+      };
+
+  return (
+    <nav aria-label="مسار التصفح" className="animate-page-enter">
+      <motion.ol
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="flex items-center gap-1.5 text-sm"
+      >
+        <li>
+          <Link
+            href="/"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            الرئيسية
+          </Link>
+        </li>
+        <li>
+          <ChevronLeft className="h-3.5 w-3.5 text-muted-foreground/50" />
+        </li>
+        <li>
+          <Link
+            href="/facilities"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            المنشآت
+          </Link>
+        </li>
+        <li>
+          <ChevronLeft className="h-3.5 w-3.5 text-muted-foreground/50" />
+        </li>
+        <li>
+          <span className="font-medium text-foreground line-clamp-1 max-w-[200px] sm:max-w-xs">
+            {facilityName}
+          </span>
+        </li>
+      </motion.ol>
+    </nav>
+  );
+}
+
+/* ─── Report Dialog ────────────────────────────────── */
+const REPORT_CATEGORIES = [
+  { value: "inappropriate", label: "محتوى غير لائق" },
+  { value: "wrong_info", label: "معلومات خاطئة" },
+  { value: "closed", label: "منشأة مغلقة" },
+  { value: "other", label: "أخرى" },
+] as const;
+
+function ReportDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+  const { toast } = useToast();
+  const [category, setCategory] = useState("");
+  const [description, setDescription] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = useCallback(() => {
+    if (!category.trim()) return;
+    setIsSubmitting(true);
+    setTimeout(() => {
+      toast({ title: "تم إرسال البلاغ بنجاح. شكرًا لك" });
+      setCategory("");
+      setDescription("");
+      setIsSubmitting(false);
+      onOpenChange(false);
+    }, 600);
+  }, [category, toast, onOpenChange]);
+
+  const handleClose = useCallback(() => {
+    setCategory("");
+    setDescription("");
+    onOpenChange(false);
+  }, [onOpenChange]);
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>إبلاغ عن منشأة</DialogTitle>
+          <DialogDescription>سيتم مراجعة البلاغ واتخاذ الإجراء المناسب</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <label htmlFor="report-category" className="text-sm font-medium text-foreground">نوع البلاغ</label>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger id="report-category" className="w-full min-h-[44px]">
+                <SelectValue placeholder="اختر نوع البلاغ" />
+              </SelectTrigger>
+              <SelectContent>
+                {REPORT_CATEGORIES.map((cat) => (
+                  <SelectItem key={cat.value} value={cat.value} className="min-h-[44px]">{cat.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="report-desc" className="text-sm font-medium text-foreground">تفاصيل البلاغ</label>
+            <Textarea
+              id="report-desc"
+              placeholder="اشرح المشكلة التي واجهتها..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="min-h-[100px] resize-none"
+            />
+          </div>
+        </div>
+        <DialogFooter className="flex gap-2 sm:gap-0">
+          <Button
+            variant="outline"
+            onClick={handleClose}
+            className="min-h-[44px]"
+          >
+            إلغاء
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={!category.trim() || isSubmitting}
+            className="min-h-[44px]"
+          >
+            {isSubmitting ? "جارٍ الإرسال..." : "إرسال البلاغ"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 /* ─── Main Content ──────────────────────────────────── */
 export default function FacilityDetailContent() {
   const params = useParams<{ id: string }>();
+  const [reportOpen, setReportOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const { toast } = useToast();
   const facilityId = Number(params.id);
   const [activeCategory, setActiveCategory] = useState<string>("الكل");
   const [search, setSearch] = useState("");
-  const prefersReduced = useReducedMotion();
+const prefersReduced = usePrefersReducedMotion();
   const coverRef = useRef<HTMLDivElement>(null);
 
   const { data: facilities, isLoading: facLoading, error: facError, refetch: facRefetch } = useFacilities();
@@ -161,6 +338,63 @@ export default function FacilityDetailContent() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, [prefersReduced]);
+
+  /* ─── Share handlers ──────────────────────────────── */
+  const handleCopyLink = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const url = window.location.href;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(() => {
+        toast({ title: "تم نسخ الرابط" });
+      }).catch(() => {
+        fallbackCopy(url, toast);
+      });
+    } else {
+      fallbackCopy(url, toast);
+    }
+  }, [toast]);
+
+  const handleShareTwitter = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent(`تعرف على ${facility?.name ?? "هذه المنشأة"} على وفر`);
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");
+  }, [facility?.name, toast]);
+
+  const handleShareWhatsApp = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent(`تعرف على ${facility?.name ?? "هذه المنشأة"} على وفر`);
+    window.open(`https://wa.me/?text=${text}%20${url}`, "_blank");
+  }, [facility?.name, toast]);
+
+  /* ─── Reading progress ────────────────────────────── */
+  useEffect(() => {
+    const onScroll = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (docHeight <= 0) {
+        setScrollProgress(0);
+        return;
+      }
+      const progress = Math.min(scrollTop / docHeight, 1);
+      setScrollProgress(progress * 100);
+    };
+    let ticking = false;
+    const rafHandler = () => {
+      onScroll();
+      ticking = false;
+    };
+    const scrollListener = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(rafHandler);
+      }
+    };
+    onScroll();
+    window.addEventListener("scroll", scrollListener, { passive: true });
+    return () => window.removeEventListener("scroll", scrollListener);
+  }, []);
 
   /* ─── Category product counts ──────────────────────── */
   const categoryCounts = useMemo(() => {
@@ -223,13 +457,34 @@ export default function FacilityDetailContent() {
 
   return (
     <div>
+      {/* Reading Progress Bar */}
+      <div
+        className={cn(
+          "fixed top-0 left-0 z-50 h-0.5",
+          scrollProgress > 0 ? "opacity-100" : "opacity-0"
+        )}
+        style={{
+          width: `${scrollProgress}%`,
+          background: "var(--primary)",
+          transition: prefersReduced ? "none" : "width 0.1s linear",
+        }}
+        aria-hidden="true"
+      />
+
+      {/* Breadcrumbs */}
+      <div className="border-b bg-card">
+        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
+          <Breadcrumbs facilityName={facility.name} />
+        </div>
+      </div>
+
       {/* JSON-LD */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "Restaurant",
+            "@type": SCHEMA_ORG_TYPE[facility.type],
             name: facility.name,
             description: facility.description ?? "",
             address: facility.address ?? "",
@@ -294,8 +549,125 @@ export default function FacilityDetailContent() {
               <ExternalLink className="h-4 w-4 shrink-0" />افتح في الخرائط
             </a>
           )}
+          <div className="mr-auto flex items-center gap-2">
+            <button
+              onClick={() => {
+                setIsFavorite((prev) => {
+                  const next = !prev;
+                  toast({ title: next ? "تمت الإضافة للمفضلة" : "تمت الإزالة من المفضلة" });
+                  return next;
+                });
+              }}
+              className="inline-flex items-center gap-2 rounded-full bg-muted px-3.5 py-2 text-sm min-h-[44px] transition-colors hover:bg-muted/80"
+              aria-label={isFavorite ? "إزالة من المفضلة" : "إضافة للمفضلة"}
+            >
+              <motion.span
+                key={isFavorite ? "filled" : "outline"}
+                initial={{ scale: 0.6 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 350, damping: 20 }}
+              >
+                <Heart className={cn("h-4 w-4 shrink-0 transition-colors", isFavorite ? "fill-primary text-primary" : "text-muted-foreground hover:text-primary")} />
+              </motion.span>
+              {isFavorite ? "مفضلة" : "تفضيل"}
+            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className={cn(
+                    "inline-flex items-center gap-2 rounded-full bg-muted px-3.5 py-2 text-sm min-h-[44px] transition-colors",
+                    "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                  )}
+                >
+                  <Share2 className="h-4 w-4 shrink-0" />
+                  مشاركة
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuItem
+                  className="min-h-[44px] gap-3 cursor-pointer"
+                  onClick={handleCopyLink}
+                >
+                  <Copy className="h-4 w-4 text-muted-foreground" />
+                  <span>نسخ الرابط</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="min-h-[44px] gap-3 cursor-pointer"
+                  onClick={handleShareTwitter}
+                >
+                  <Twitter className="h-4 w-4 text-muted-foreground" />
+                  <span>مشاركة على X</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="min-h-[44px] gap-3 cursor-pointer"
+                  onClick={handleShareWhatsApp}
+                >
+                  <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                  <span>مشاركة عبر واتساب</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <button
+              onClick={() => setReportOpen(true)}
+              className="inline-flex items-center gap-2 rounded-full bg-muted px-3.5 py-2 text-sm text-muted-foreground hover:bg-muted/80 hover:text-destructive min-h-[44px] transition-colors"
+            >
+              <Flag className="h-4 w-4 shrink-0" />
+              إبلاغ
+            </button>
+          </div>
+          <ReportDialog open={reportOpen} onOpenChange={setReportOpen} />
         </div>
       </div>
+
+      {/* Product Quick View Modal */}
+      <Dialog open={selectedProduct !== null} onOpenChange={(open) => { if (!open) setSelectedProduct(null); }}>
+        <DialogContent className="sm:max-w-md">
+          {selectedProduct && (
+            <motion.div
+              initial={prefersReduced ? { opacity: 0 } : { opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="relative h-56 overflow-hidden rounded-xl bg-muted mb-4">
+                {selectedProduct.image_url ? (
+                  <ImageWithSkeleton src={selectedProduct.image_url} alt={selectedProduct.name} fill className="h-full w-full" />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-muted-foreground/30">
+                    <UtensilsCrossed className="h-12 w-12" />
+                  </div>
+                )}
+              </div>
+              <DialogHeader className="text-right">
+                <div className="flex items-start justify-between gap-2">
+                  <DialogTitle className="text-xl font-bold">{selectedProduct.name}</DialogTitle>
+                  <span className="shrink-0 rounded-full border bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                    {selectedProduct.category}
+                  </span>
+                </div>
+                <DialogDescription className="sr-only">عرض تفاصيل المنتج</DialogDescription>
+              </DialogHeader>
+              {selectedProduct.description && (
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                  {selectedProduct.description}
+                </p>
+              )}
+              <div className="mt-4 flex items-baseline gap-3">
+                <span className="text-sm text-muted-foreground line-through">
+                  {PRICE_FMT.format(parseFloat(selectedProduct.price))}
+                </span>
+                <span className="text-2xl font-extrabold text-primary">
+                  {PRICE_FMT.format(parseFloat(selectedProduct.price) * 0.7)}
+                </span>
+              </div>
+              <DialogFooter className="mt-6">
+                <Button disabled className="w-full rounded-full min-h-[44px] bg-primary text-primary-foreground">
+                  احصل على خصم 30%
+                </Button>
+              </DialogFooter>
+            </motion.div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Content */}
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
@@ -365,7 +737,7 @@ export default function FacilityDetailContent() {
                 className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
               >
                 {products.map((p) => (
-                  <ProductCard key={p.id} product={p} />
+                  <ProductCard key={p.id} product={p} onClick={() => setSelectedProduct(p)} />
                 ))}
               </motion.div>
             </>
@@ -373,10 +745,23 @@ export default function FacilityDetailContent() {
         </div>
 
         {/* Back Link */}
-        <div className="mt-8">
+        <div className="mt-8 mb-20 md:mb-0">
           <Link href="/facilities" className="inline-flex items-center gap-1.5 text-sm text-secondary hover:underline min-h-[44px]">
             <ArrowRight className="h-4 w-4" />العودة لقائمة المنشآت
           </Link>
+        </div>
+      </div>
+
+      {/* Sticky Bottom Bar - Mobile */}
+      <div className="fixed bottom-16 left-0 right-0 z-40 border-t bg-card/95 backdrop-blur-md px-4 py-3 md:hidden">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-bold text-foreground">احصل على خصم 30%</p>
+            <p className="text-xs text-muted-foreground">سجّل الآن واستمتع بالخصم الفوري</p>
+          </div>
+          <Button asChild size="sm" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 min-h-[44px] shrink-0">
+            <Link href="/register">تسجيل</Link>
+          </Button>
         </div>
       </div>
     </div>

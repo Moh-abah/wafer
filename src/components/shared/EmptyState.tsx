@@ -1,6 +1,7 @@
 "use client";
 
 import { type LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface EmptyStateProps {
   icon: LucideIcon;
@@ -10,14 +11,30 @@ interface EmptyStateProps {
 
 export function EmptyState({ icon: Icon, title, description }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-      <div className="flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
-        <Icon className="w-8 h-8 text-muted-foreground" />
+    <div className="flex items-center justify-center py-16 px-4">
+      <div
+        className={cn(
+          "flex flex-col items-center text-center rounded-2xl border bg-card p-8 sm:p-10",
+          "max-w-sm w-full"
+        )}
+      >
+        <div className="relative mb-5">
+          {/* Gradient background circle */}
+          <div
+            className="absolute inset-0 -m-2 rounded-full opacity-20"
+            style={{
+              background: "radial-gradient(circle, var(--primary) 0%, transparent 70%)",
+            }}
+          />
+          <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+            <Icon className="h-8 w-8 text-muted-foreground" />
+          </div>
+        </div>
+        <h3 className="text-lg font-bold text-foreground mb-1">{title}</h3>
+        {description && (
+          <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+        )}
       </div>
-      <h3 className="text-lg font-semibold text-foreground mb-1">{title}</h3>
-      {description && (
-        <p className="text-sm text-muted-foreground max-w-sm">{description}</p>
-      )}
     </div>
   );
 }

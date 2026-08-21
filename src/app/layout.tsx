@@ -1,18 +1,46 @@
 import type { Metadata } from "next";
-import { Cairo, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { Providers } from "./providers";
 
-const cairo = Cairo({
+const cairo = localFont({
+  src: [
+    {
+      path: "../../public/fonts/Cairo-Regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/Cairo-SemiBold.ttf",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/Cairo-Bold.ttf",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/Cairo-ExtraBold.ttf",
+      weight: "800",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/Cairo-Black.ttf",
+      weight: "900",
+      style: "normal",
+    },
+  ],
   variable: "--font-cairo",
-  subsets: ["arabic", "latin"],
-  weight: ["400", "600", "700", "800", "900"],
   display: "swap",
 });
 
-const geistMono = Geist_Mono({
+// تعريف Geist Mono محلياً (إذا كنت تملك الملفات)
+// أو استخدم خطاً بديلاً
+const geistMono = localFont({
+  src: "../../public/fonts/GeistMono-Regular.ttf", // غيّر المسار حسب اسم الملف
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
