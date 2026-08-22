@@ -14,11 +14,12 @@ const ThemeContext = React.createContext<ThemeContextValue | null>(null);
 const STORAGE_KEY = "wafir-theme";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
- const [theme, setThemeState] = React.useState<Theme>("dark");
+ const [theme, setThemeState] = React.useState<Theme>("light");
 
  React.useEffect(() => {
   const stored = window.localStorage.getItem(STORAGE_KEY);
-  const initial: Theme = stored === "light" ? "light" : "dark";
+  const initial: Theme = stored === "dark" ? "dark" : "light";
+  
   setThemeState(initial);
   document.documentElement.classList.toggle("dark", initial === "dark");
  }, []);

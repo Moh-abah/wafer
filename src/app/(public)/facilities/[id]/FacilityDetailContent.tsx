@@ -505,7 +505,7 @@ const prefersReduced = usePrefersReducedMotion();
           {facility.image_url ? (
             <ImageWithSkeleton src={facility.image_url} alt={facility.name} fill className="h-full w-full" />
           ) : (
-            <div className="flex h-full items-center justify-center bg-[#0A1628]">
+              <div className="flex h-full items-center justify-center bg-[#071320]">
               <Landmark className="h-16 w-16 text-white/20" />
             </div>
           )}

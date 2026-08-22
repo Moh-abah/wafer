@@ -95,7 +95,7 @@ function HowItWorks() {
 /*  Animated Counter Hook                                              */
 /* ------------------------------------------------------------------ */
 function useAnimatedCounter(target: number, duration = 2000) {
-const prefersReduced = usePrefersReducedMotion();
+  const prefersReduced = usePrefersReducedMotion();
   const [count, setCount] = useState(prefersReduced ? target : 0);
 
   useEffect(() => {
@@ -275,10 +275,10 @@ function FilterChipsBar() {
 /*  Hero Section (cinema-quality)                                       */
 /* ------------------------------------------------------------------ */
 const FLOATING_SHAPES = [
-  { size: 180, top: "10%", right: "-5%", color: "rgba(255,42,122,0.12)", delay: 0, duration: 7 },
-  { size: 120, top: "60%", left: "-3%", color: "rgba(255,209,102,0.10)", delay: 1.5, duration: 9 },
-  { size: 90, top: "20%", left: "15%", color: "rgba(0,194,184,0.08)", delay: 3, duration: 8 },
-  { size: 60, bottom: "15%", right: "20%", color: "rgba(255,42,122,0.08)", delay: 2, duration: 6 },
+  { size: 180, top: "10%", right: "-5%", color: "rgba(0,102,153,0.12)", delay: 0, duration: 7 },
+  { size: 120, top: "60%", left: "-3%", color: "rgba(255,168,0,0.10)", delay: 1.5, duration: 9 },
+  { size: 90, top: "20%", left: "15%", color: "rgba(0,163,224,0.08)", delay: 3, duration: 8 },
+  { size: 60, bottom: "15%", right: "20%", color: "rgba(0,102,153,0.08)", delay: 2, duration: 6 },
 ] as const;
 
 const SPARKLE_POSITIONS = [
@@ -289,7 +289,7 @@ const SPARKLE_POSITIONS = [
 ] as const;
 
 function HeroSection() {
-const prefersReduced = usePrefersReducedMotion();
+  const prefersReduced = usePrefersReducedMotion();
   const facilityCount = useAnimatedCounter(150, 2000);
   const userCount = useAnimatedCounter(2000, 2500);
 
@@ -311,7 +311,7 @@ const prefersReduced = usePrefersReducedMotion();
       <div
         className="absolute inset-0 animate-hero-gradient"
         style={{
-          background: "linear-gradient(135deg, #0A1628 0%, #1a0a2e 25%, #0D1526 50%, #16213A 75%, #0A1628 100%)",
+          background: "linear-gradient(135deg, #071320 0%, #091825 25%, #0D1526 50%, #0F1F33 75%, #071320 100%)",
         }}
       />
       {/* Grid pattern overlay */}
@@ -482,31 +482,31 @@ const HOW_STEPS: ReadonlyArray<{
   iconBg: string;
   iconColor: string;
 }> = [
-  {
-    num: 1,
-    title: "سجّل عضويتك",
-    desc: "أنشئ حسابك في دقائق واحصل على بطاقة خصم رقمية فورية بنسبة 30%",
-    icon: UserPlus,
-    iconBg: "bg-primary/15",
-    iconColor: "text-primary",
-  },
-  {
-    num: 2,
-    title: "احصل على بطاقتك",
-    desc: "تظهر بطاقتك الرقمية تلقائياً في حسابك وجاهزة للاستخدام فوراً",
-    icon: CreditCard,
-    iconBg: "bg-secondary/15",
-    iconColor: "text-secondary",
-  },
-  {
-    num: 3,
-    title: "استمتع بالخصومات",
-    desc: "اعرض بطاقتك في أي منشأة شريكة واحصل على خصمك الفوري",
-    icon: Percent,
-    iconBg: "bg-accent/15",
-    iconColor: "text-accent",
-  },
-];
+    {
+      num: 1,
+      title: "سجّل عضويتك",
+      desc: "أنشئ حسابك في دقائق واحصل على بطاقة خصم رقمية فورية بنسبة 30%",
+      icon: UserPlus,
+      iconBg: "bg-primary/15",
+      iconColor: "text-primary",
+    },
+    {
+      num: 2,
+      title: "احصل على بطاقتك",
+      desc: "تظهر بطاقتك الرقمية تلقائياً في حسابك وجاهزة للاستخدام فوراً",
+      icon: CreditCard,
+      iconBg: "bg-secondary/15",
+      iconColor: "text-secondary",
+    },
+    {
+      num: 3,
+      title: "استمتع بالخصومات",
+      desc: "اعرض بطاقتك في أي منشأة شريكة واحصل على خصمك الفوري",
+      icon: Percent,
+      iconBg: "bg-accent/15",
+      iconColor: "text-accent",
+    },
+  ];
 
 
 /* ------------------------------------------------------------------ */
@@ -548,7 +548,7 @@ function TestimonialCard({ t, i }: { readonly t: (typeof TESTIMONIALS)[number]; 
 }
 
 function TestimonialsSection() {
-const prefersReduced = usePrefersReducedMotion();
+  const prefersReduced = usePrefersReducedMotion();
   return (
     <section className="space-y-6">
       <div className="flex items-center gap-2">
@@ -684,7 +684,7 @@ function ContactSection() {
 /*  PromoBanner (countdown + gradient)                                  */
 /* ------------------------------------------------------------------ */
 function useCountdown(targetDate: Date) {
-const prefersReduced = usePrefersReducedMotion();
+  const prefersReduced = usePrefersReducedMotion();
 
   const computeDiff = useCallback(() => {
     const diff = Math.max(0, targetDate.getTime() - Date.now());
@@ -725,7 +725,13 @@ function getStoredCountdownTarget(): Date {
 
 function PromoBanner() {
   const prefersReduced = usePrefersReducedMotion();
-    const [targetDate] = useState(() => getStoredCountdownTarget());
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const [targetDate] = useState(() => getStoredCountdownTarget());
   const { days, hours, minutes, seconds } = useCountdown(targetDate);
 
   const timeBlocks = [
@@ -734,6 +740,17 @@ function PromoBanner() {
     { value: minutes, label: "دقائق" },
     { value: seconds, label: "ثواني" },
   ] as const;
+
+  const countdownContent = timeBlocks.map((block) => (
+    <div key={block.label} className="flex flex-col items-center">
+      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm border border-white/20">
+        <span className="text-xl font-black text-white tabular-nums">
+          {mounted ? String(block.value).padStart(2, "0") : "00"}
+        </span>
+      </div>
+      <span className="mt-1 text-[10px] font-medium text-white/70">{block.label}</span>
+    </div>
+  ));
 
   return (
     <section className="relative mx-4 overflow-hidden rounded-2xl sm:mx-0">
@@ -756,18 +773,8 @@ function PromoBanner() {
               )}
               <h2 className="text-lg font-bold text-white sm:text-xl">عرض محدود: اشترك الآن واحصل على بطاقة وفر بخصم 30% على أفضل المنشآت</h2>
             </div>
-            {/* Countdown */}
             <div className="mt-4 flex items-center justify-center gap-3 sm:justify-start">
-              {timeBlocks.map((block) => (
-                <div key={block.label} className="flex flex-col items-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm border border-white/20">
-                    <span className="text-xl font-black text-white tabular-nums">
-                      {String(block.value).padStart(2, "0")}
-                    </span>
-                  </div>
-                  <span className="mt-1 text-[10px] font-medium text-white/70">{block.label}</span>
-                </div>
-              ))}
+              {countdownContent}
             </div>
           </div>
           <Button

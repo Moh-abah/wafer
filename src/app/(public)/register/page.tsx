@@ -138,7 +138,7 @@ function SuccessScreen({ message }: { message: string }) {
       <p className="mb-8 text-sm text-muted-foreground">{message || "أهلاً بك في منصة وفر"}</p>
 
       {/* Virtual Card with shimmer */}
-      <div className="relative mx-auto mb-8 max-w-sm overflow-hidden rounded-2xl border-2 border-primary/30 bg-gradient-to-bl from-[#0A1628] to-[#16213A] p-6 text-white">
+      <div className="relative mx-auto mb-8 max-w-sm overflow-hidden rounded-2xl border-2 border-primary/30 bg-gradient-to-bl from-[#071320] to-[#0F1F33] p-6 text-white">
         {/* Shimmer effect */}
         <div
           className="absolute inset-0 pointer-events-none"
@@ -156,7 +156,7 @@ function SuccessScreen({ message }: { message: string }) {
                 maskSize: "contain",
                 maskRepeat: "no-repeat",
                 maskPosition: "center",
-                backgroundColor: "#FF2A7A",
+                backgroundColor: "#006699",
               }}
             />
             <DiscountBadge percentage={30} />

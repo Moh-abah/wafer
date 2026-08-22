@@ -44,10 +44,10 @@ export function MobileBottomNav() {
                 href={item.href}
                 className={cn(
                   "flex min-h-[56px] min-w-[64px] flex-col items-center justify-center gap-1 px-3 py-2 transition-all duration-200",
-                  "text-primary shadow-[0_0_12px_rgba(255,42,122,0.4)]"
+                  "text-primary shadow-[0_0_12px_rgba(0,102,153,0.4)]"
                 )}
                 style={{
-                  textShadow: "0 0 12px rgba(255, 42, 122, 0.5)",
+                  textShadow: "0 0 12px rgba(0, 102, 153, 0.5)",
                 }}
               >
                 <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30">

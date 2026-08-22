@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { SearchX } from "lucide-react";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
@@ -16,15 +16,13 @@ const PARTICLES = [
 export default function NotFound() {
   const prefersReduced = usePrefersReducedMotion();
 
-
-  
   return (
     <div className="relative flex min-h-[100dvh] flex-col items-center justify-center gap-6 px-4 text-center overflow-hidden">
       {/* Glowing radial gradient behind 404 */}
       <div
         className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full blur-[40px]"
         style={{
-          background: "radial-gradient(circle, rgba(255,42,122,0.10) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(0,102,153,0.10) 0%, transparent 70%)",
         }}
       />
 
