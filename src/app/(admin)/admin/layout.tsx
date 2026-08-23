@@ -78,8 +78,8 @@ const NOTIFICATIONS: NotificationItem[] = [
     text: "تم تحديث بيانات المنطقة",
     time: "منذ 3 ساعات",
     icon: MapPin,
-    bgClass: "bg-emerald-500/15",
-    iconColorClass: "text-emerald-500",
+    bgClass: "bg-success/15",
+    iconColorClass: "text-success",
   },
 ];
 

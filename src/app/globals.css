@@ -34,6 +34,7 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+  --color-primary-deep: var(--primary-deep);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -43,15 +44,32 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
+  /* ── Category palette (facility types) ── */
+  --color-cat-restaurant: var(--cat-restaurant);
+  --color-cat-restaurant-soft: var(--cat-restaurant-soft);
+  --color-cat-cafe: var(--cat-cafe);
+  --color-cat-cafe-soft: var(--cat-cafe-soft);
+  --color-cat-facility: var(--cat-facility);
+  --color-cat-facility-soft: var(--cat-facility-soft);
+
+  /* ── Logo brand palette ── */
+  --color-logo-gold: var(--logo-gold);
+  --color-logo-blue: var(--logo-blue);
+  --color-logo-cyan: var(--logo-cyan);
+  --color-logo-white: var(--logo-white);
+
+  /* ── Soft brand shadows ── */
+  --shadow-soft: var(--shadow-soft);
+  --shadow-soft-lg: var(--shadow-soft-lg);
+
   /* Skeleton shimmer animation */
   --animate-shimmer: shimmer 2s infinite linear;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   Light Mode — Wafir New Brand Identity
-   Primary: #006699 (Deep Ocean Teal)
-   Secondary: #00A3E0 (Bright Cyan)
-   Accent: #FFA800 (Warm Amber)
+   Light Mode — Wafir Ocean Identity
+   Primary: #005B82 (Deep Ocean) → Deep: #003B55
+   Secondary: #00A3E0 (Bright Cyan) | Accent: #FFA800 (Warm Gold)
    ═══════════════════════════════════════════════════════════════ */
 :root {
   --radius: 0.75rem;
@@ -61,81 +79,118 @@
   --card-foreground: #1D2D44;
   --popover: #FFFFFF;
   --popover-foreground: #1D2D44;
-  --primary: #006699;
+  --primary: #005B82;
   --primary-foreground: #FFFFFF;
+  --primary-deep: #003B55;
   --secondary: #00A3E0;
   --secondary-foreground: #FFFFFF;
   --muted: #F0F2F5;
   --muted-foreground: #718096;
   --accent: #FFA800;
-  --accent-foreground: #1D2D44;
+  --accent-foreground: #FFFFFF;
   --destructive: #DC2626;
   --success: #16A34A;
   --border: #E6EAF0;
   --input: #E6EAF0;
-  --ring: #006699;
+  --ring: #005B82;
 
-  /* Charts derived from brand palette */
-  --chart-1: #006699;
+  /* Charts derived from the ocean palette */
+  --chart-1: #005B82;
   --chart-2: #00A3E0;
   --chart-3: #FFA800;
-  --chart-4: #FF6B35;
-  --chart-5: #00D4AA;
+  --chart-4: #0E7BA6;
+  --chart-5: #8B5CF6;
 
   /* Sidebar – light */
   --sidebar: #FFFFFF;
   --sidebar-foreground: #1D2D44;
-  --sidebar-primary: #006699;
+  --sidebar-primary: #005B82;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #E6F4FA;
-  --sidebar-accent-foreground: #006699;
+  --sidebar-accent: #E5F3F9;
+  --sidebar-accent-foreground: #005B82;
   --sidebar-border: #E6EAF0;
-  --sidebar-ring: #006699;
+  --sidebar-ring: #005B82;
+
+  /* Facility category colors (light alpha) */
+  --cat-restaurant: #FFA800;
+  --cat-restaurant-soft: color-mix(in srgb, #FFA800 13%, transparent);
+  --cat-cafe: #00A3E0;
+  --cat-cafe-soft: color-mix(in srgb, #00A3E0 13%, transparent);
+  --cat-facility: #8B5CF6;
+  --cat-facility-soft: color-mix(in srgb, #8B5CF6 13%, transparent);
+
+  /* Logo brand colors (identity-stable, slight dark adaptation) */
+  --logo-gold: #FFA800;
+  --logo-blue: #005B82;
+  --logo-cyan: #00A3E0;
+  --logo-white: #FFFFFF;
+
+  /* Soft brand shadows */
+  --shadow-soft: 0 4px 10px rgba(29, 45, 68, 0.05);
+  --shadow-soft-lg: 0 8px 24px rgba(29, 45, 68, 0.08);
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   Dark Mode (default) — Wafir New Brand Identity
-   Primary: #00A3E0 (Bright Cyan — brighter for dark bg)
-   Secondary: #00B8D4 (Cyan variant)
-   Accent: #FFB833 (Amber variant for dark)
+   Dark Mode — Wafir Ocean Identity
+   Primary: #0E7BA6 (brighter ocean for dark bg) → Deep: #062A3D
+   Background: #0F1B2A (deep navy) | Card: #16263B
    ═══════════════════════════════════════════════════════════════ */
 .dark {
-  --background: #0D1526;
-  --foreground: #F8F9FA;
-  --card: #0F1F33;
-  --card-foreground: #F8F9FA;
-  --popover: #0F1F33;
-  --popover-foreground: #F8F9FA;
-  --primary: #00A3E0;
+  --background: #0F1B2A;
+  --foreground: #F1F5F9;
+  --card: #16263B;
+  --card-foreground: #F1F5F9;
+  --popover: #16263B;
+  --popover-foreground: #F1F5F9;
+  --primary: #0E7BA6;
   --primary-foreground: #FFFFFF;
-  --secondary: #00B8D4;
-  --secondary-foreground: #FFFFFF;
-  --muted: #1D2D44;
+  --primary-deep: #062A3D;
+  --secondary: #38B6E8;
+  --secondary-foreground: #062A3D;
+  --muted: #1A2B40;
   --muted-foreground: #8DA0BC;
   --accent: #FFB833;
-  --accent-foreground: #0D1526;
+  --accent-foreground: #FFFFFF;
   --destructive: #EF4444;
   --success: #22C55E;
-  --border: #1E2D42;
-  --input: #1E2D42;
-  --ring: #00A3E0;
+  --border: #22354E;
+  --input: #22354E;
+  --ring: #0E7BA6;
 
   /* Charts – darker-friendly variants */
-  --chart-1: #00A3E0;
-  --chart-2: #00B8D4;
+  --chart-1: #0E7BA6;
+  --chart-2: #38B6E8;
   --chart-3: #FFB833;
-  --chart-4: #FF7F45;
-  --chart-5: #00E0B0;
+  --chart-4: #FFA800;
+  --chart-5: #A78BFA;
 
   /* Sidebar – dark */
-  --sidebar: #0E1A2E;
-  --sidebar-foreground: #F8F9FA;
-  --sidebar-primary: #00A3E0;
+  --sidebar: #122238;
+  --sidebar-foreground: #F1F5F9;
+  --sidebar-primary: #0E7BA6;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #132A3E;
-  --sidebar-accent-foreground: #F8F9FA;
-  --sidebar-border: #1E2D42;
-  --sidebar-ring: #00A3E0;
+  --sidebar-accent: #14304A;
+  --sidebar-accent-foreground: #F1F5F9;
+  --sidebar-border: #22354E;
+  --sidebar-ring: #0E7BA6;
+
+  /* Facility category colors (higher alpha for dark clarity) */
+  --cat-restaurant: #FFA800;
+  --cat-restaurant-soft: color-mix(in srgb, #FFA800 22%, transparent);
+  --cat-cafe: #00A3E0;
+  --cat-cafe-soft: color-mix(in srgb, #00A3E0 22%, transparent);
+  --cat-facility: #8B5CF6;
+  --cat-facility-soft: color-mix(in srgb, #8B5CF6 22%, transparent);
+
+  /* Logo brand colors adapted for dark surfaces */
+  --logo-gold: #FFB833;
+  --logo-blue: #38B6E8;
+  --logo-cyan: #00A3E0;
+  --logo-white: #FFFFFF;
+
+  /* Deeper shadows for dark mode */
+  --shadow-soft: 0 4px 12px rgba(2, 10, 20, 0.35);
+  --shadow-soft-lg: 0 10px 30px rgba(2, 10, 20, 0.45);
 }
 
 @layer base {
@@ -160,12 +215,12 @@
 
   ::selection {
     background: var(--primary);
-    color: white;
+    color: #FFFFFF;
   }
 
   input:focus,
   textarea:focus {
-    box-shadow: 0 0 0 3px rgba(0, 102, 153, 0.1);
+    box-shadow: 0 0 0 3px rgba(0, 91, 130, 0.12);
   }
 
   /* Custom scrollbar */
@@ -191,6 +246,75 @@
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   Brand identity gradients & login backdrops (ocean identity)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Membership card / «لماذا وفر» gradient — token-based, present in both modes */
+.gradient-ocean {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-deep) 100%);
+}
+
+/* Admin / Owner login backdrop — deep ocean gradient (identity-stable) */
+.login-ocean-bg {
+  background: linear-gradient(135deg,
+      #062A3D 0%,
+      #003B55 28%,
+      #005B82 50%,
+      #003B55 72%,
+      #062A3D 100%);
+  background-size: 300% 300%;
+}
+
+/* Floating login glow blobs */
+.login-blob-cyan {
+  background: radial-gradient(circle, rgba(56, 182, 232, 0.26) 0%, transparent 70%);
+}
+
+.login-blob-deep {
+  background: radial-gradient(circle, rgba(14, 123, 166, 0.30) 0%, transparent 70%);
+}
+
+.login-blob-gold {
+  background: radial-gradient(circle, rgba(255, 168, 0, 0.14) 0%, transparent 70%);
+}
+
+/* Soft ocean glow (decorative halos) */
+.glow-ocean {
+  background: radial-gradient(circle, rgba(0, 163, 224, 0.12) 0%, transparent 70%);
+}
+
+/* Logo glow on dark backdrops */
+.login-logo-glow {
+  filter: drop-shadow(0 0 24px rgba(0, 163, 224, 0.45));
+}
+
+/* Shimmer sweep across the membership card */
+.card-shimmer-sweep {
+  background: linear-gradient(105deg,
+      transparent 40%,
+      rgba(255, 255, 255, 0.08) 45%,
+      rgba(255, 255, 255, 0.16) 50%,
+      rgba(255, 255, 255, 0.08) 55%,
+      transparent 60%);
+  background-size: 200% 100%;
+  animation: shimmer-sweep 3.2s ease-in-out infinite;
+}
+
+@keyframes shimmer-sweep {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Animations & keyframes
+   ═══════════════════════════════════════════════════════════════ */
+
 /* Skeleton shimmer keyframes */
 @keyframes shimmer {
   0% {
@@ -215,17 +339,6 @@
   }
 }
 
-/* Promo shimmer animation */
-@keyframes promo-shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-
-  100% {
-    background-position: 200% 0;
-  }
-}
-
 /* Pulse glow keyframes */
 @keyframes pulse-glow {
 
@@ -246,22 +359,17 @@
 
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(0, 102, 153, 0.4);
+    box-shadow: 0 0 0 0 rgba(0, 91, 130, 0.4);
   }
 
   50% {
-    box-shadow: 0 0 0 8px rgba(0, 102, 153, 0);
+    box-shadow: 0 0 0 8px rgba(0, 91, 130, 0);
   }
 }
 
 .animate-hero-gradient {
   background-size: 200% 200%;
   animation: hero-gradient 8s ease infinite;
-}
-
-.animate-promo-shimmer {
-  background-size: 200% 100%;
-  animation: promo-shimmer 3s linear infinite;
 }
 
 .animate-pulse-glow {
@@ -303,8 +411,6 @@
 .dark .hero-pattern-overlay {
   opacity: 0.04;
 }
-
-/* Animations are defined further below with reduced motion support */
 
 /* Skeleton shimmer utility */
 .skeleton-shimmer {
@@ -397,7 +503,11 @@
 }
 
 .card-glow:hover {
-  box-shadow: 0 0 20px -5px rgba(0, 102, 153, 0.15);
+  box-shadow: 0 0 20px -5px rgba(0, 91, 130, 0.18);
+}
+
+.dark .card-glow:hover {
+  box-shadow: 0 0 24px -5px rgba(56, 182, 232, 0.18);
 }
 
 /* Glass card utility */
@@ -454,7 +564,7 @@
   height: 100%;
   background: linear-gradient(90deg,
       transparent,
-      rgba(255, 255, 255, 0.2),
+      rgba(255, 255, 255, 0.25),
       transparent);
   animation: badge-shimmer 2.5s ease-in-out infinite;
 }
@@ -483,11 +593,11 @@
   left: 0;
   z-index: 9999;
   height: 3px;
-  background: linear-gradient(90deg, var(--primary), #0088CC, var(--accent));
+  background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
   border-radius: 0 4px 4px 0;
   animation: nprogress-loading 0.8s ease-in-out forwards;
   pointer-events: none;
-  box-shadow: 0 0 12px rgba(0, 102, 153, 0.5), 0 0 4px rgba(0, 102, 153, 0.3);
+  box-shadow: 0 0 12px rgba(0, 91, 130, 0.5), 0 0 4px rgba(0, 91, 130, 0.3);
 }
 
 .nprogress-bar::after {
@@ -562,6 +672,7 @@
   .skeleton-branded,
   .hero-pattern-overlay,
   .hero-grid-pattern,
+  .card-shimmer-sweep,
   .link-underline::after {
     animation: none;
   }
@@ -590,7 +701,7 @@
   background-size: 60px 60px;
 }
 
-/* Marquee animation for testimonials */
+/* Marquee animation for testimonial rows */
 @keyframes marquee {
   0% {
     transform: translateX(0);
@@ -633,11 +744,11 @@
 
   0%,
   100% {
-    box-shadow: 0 0 0 1px var(--border), 0 0 0 0 rgba(0, 102, 153, 0);
+    box-shadow: 0 0 0 1px var(--border), 0 0 0 0 rgba(0, 91, 130, 0);
   }
 
   50% {
-    box-shadow: 0 0 0 1px var(--primary), 0 0 8px 0 rgba(0, 102, 153, 0.15);
+    box-shadow: 0 0 0 1px var(--primary), 0 0 8px 0 rgba(0, 91, 130, 0.15);
   }
 }
 
@@ -685,7 +796,7 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(135deg, transparent 40%, rgba(0, 102, 153, 0.03) 50%, transparent 60%);
+  background: linear-gradient(135deg, transparent 40%, rgba(0, 91, 130, 0.03) 50%, transparent 60%);
   background-size: 200% 200%;
   animation: login-border-shimmer 3s ease infinite;
   pointer-events: none;
@@ -701,7 +812,7 @@
   position: absolute;
   inset: -2px;
   border-radius: inherit;
-  background: linear-gradient(90deg, transparent, rgba(0, 102, 153, 0.15), rgba(0, 163, 224, 0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(0, 91, 130, 0.15), rgba(0, 163, 224, 0.15), transparent);
   background-size: 200% 100%;
   animation: shimmer-border 3s ease-in-out infinite;
   z-index: -1;
@@ -771,11 +882,11 @@
 
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(0, 102, 153, 0.3);
+    box-shadow: 0 0 0 0 rgba(0, 91, 130, 0.3);
   }
 
   50% {
-    box-shadow: 0 0 0 6px rgba(0, 102, 153, 0);
+    box-shadow: 0 0 0 6px rgba(0, 91, 130, 0);
   }
 }
 
@@ -833,4 +944,20 @@ a:focus-visible,
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+/* Promo shimmer animation (legacy promo banner) */
+@keyframes promo-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-promo-shimmer {
+  background-size: 200% 100%;
+  animation: promo-shimmer 3s linear infinite;
 }

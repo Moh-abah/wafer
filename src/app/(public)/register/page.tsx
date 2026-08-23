@@ -10,9 +10,14 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { DiscountBadge } from "@/components/shared/DiscountBadge";
+import { WafirLogo } from "@/components/shared/WafirLogo";
+import { WafirPillBadge } from "@/components/shared/WafirPillBadge";
 import { RegionSelector } from "@/components/public/RegionSelector";
 import { useRegionStore } from "@/store/region.store";
 import { useRegister } from "@/hooks/useRegister";
+import { formatExpiry, formatMembershipNumber } from "@/lib/format";
+import { DISCOUNT_RATE } from "@/lib/site-config";
+import type { RegisterSuccessOut } from "@/types/api.generated";
 import { cn } from "@/lib/utils";
 
 /* ─── Zod Schema ─────────────────────────────────── */
@@ -64,9 +69,9 @@ function getPasswordStrength(password: string): { level: "weak" | "medium" | "st
 }
 
 const STYLES: Record<string, { bar: string; text: string }> = {
-  weak: { bar: "bg-red-500", text: "text-red-500" },
-  medium: { bar: "bg-yellow-500", text: "text-yellow-500" },
-  strong: { bar: "bg-green-500", text: "text-green-500" },
+  weak: { bar: "bg-destructive", text: "text-destructive" },
+  medium: { bar: "bg-accent", text: "text-accent" },
+  strong: { bar: "bg-success", text: "text-success" },
 };
 
 function PasswordStrengthBar({ password }: { password: string }) {
@@ -90,16 +95,25 @@ function PasswordStrengthBar({ password }: { password: string }) {
   );
 }
 
-/* ─── Confetti Particles ──────────────────────────── */
-const CONFETTI_COLORS = ["#FF2A7A", "#14B8A6", "#FACC15", "#818CF8", "#FB923C", "#34D399", "#F472B6", "#60A5FA"];
+/* ─── Confetti Particles (ذهبي/سماوي — توكنات الهوية) ─── */
+const CONFETTI_SHAPES = [
+  { className: "bg-accent rounded-full", size: 10, shape: "circle" },
+  { className: "bg-secondary rounded-sm", size: 9, shape: "square", rotate: 24 },
+  { className: "bg-cat-facility rounded-sm", size: 8, shape: "triangle", rotate: -18 },
+  { className: "bg-accent rounded-sm", size: 7, shape: "square", rotate: 45 },
+  { className: "bg-secondary rounded-full", size: 8, shape: "circle" },
+  { className: "bg-primary rounded-sm", size: 9, shape: "square", rotate: -32 },
+  { className: "bg-accent rounded-full", size: 6, shape: "circle" },
+  { className: "bg-secondary rounded-sm", size: 7, shape: "square", rotate: 60 },
+] as const;
 
 function ConfettiParticles() {
   const reduced = useReducedMotion();
+  if (reduced) return null;
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      {CONFETTI_COLORS.map((color, i) => {
-        if (reduced) return null;
-        const angle = (i / CONFETTI_COLORS.length) * 360;
+      {CONFETTI_SHAPES.map((piece, i) => {
+        const angle = (i / CONFETTI_SHAPES.length) * 360;
         const rad = (angle * Math.PI) / 180;
         const dist = 60 + Math.random() * 80;
         const tx = Math.cos(rad) * dist;
@@ -107,8 +121,15 @@ function ConfettiParticles() {
         return (
           <motion.span
             key={i}
-            className="absolute left-1/2 top-1/2 h-2.5 w-2.5 rounded-full"
-            style={{ backgroundColor: color, marginLeft: -5, marginTop: -5 }}
+            className={cn("absolute left-1/2 top-1/2", piece.className)}
+            style={{
+              width: piece.size,
+              height: piece.size,
+              marginLeft: -piece.size / 2,
+              marginTop: -piece.size / 2,
+              rotate: "rotate" in piece ? piece.rotate : 0,
+              borderRadius: piece.shape === "circle" ? "9999px" : "3px",
+            }}
             initial={{ opacity: 1, scale: 0, x: 0, y: 0 }}
             animate={{ opacity: 0, scale: 1, x: tx, y: ty }}
             transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
@@ -119,8 +140,8 @@ function ConfettiParticles() {
   );
 }
 
-/* ─── Success Screen ─────────────────────────────── */
-function SuccessScreen({ message }: { message: string }) {
+/* ─── Success Screen — البطاقة بالرقم والتاريخ الحقيقيين من الاستجابة ── */
+function SuccessScreen({ data }: { data: RegisterSuccessOut }) {
   const reduced = useReducedMotion();
   return (
     <motion.div
@@ -135,41 +156,55 @@ function SuccessScreen({ message }: { message: string }) {
         <CheckCircle2 className="h-16 w-16 text-success" />
       </div>
       <h1 className="mb-2 text-2xl font-extrabold text-foreground">تم التسجيل بنجاح!</h1>
-      <p className="mb-8 text-sm text-muted-foreground">{message || "أهلاً بك في منصة وفر"}</p>
+      <p className="mb-8 text-sm text-muted-foreground">{data.detail || "أهلاً بك في منصة وفر"}</p>
 
-      {/* Virtual Card with shimmer */}
-      <div className="relative mx-auto mb-8 max-w-sm overflow-hidden rounded-2xl border-2 border-primary/30 bg-gradient-to-bl from-[#071320] to-[#0F1F33] p-6 text-white">
-        {/* Shimmer effect */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.08) 55%, transparent 60%)",
-            animation: "card-shimmer 3s ease-in-out infinite",
-          }}
-        />
-        <div className="relative z-10">
-          <div className="mb-4 flex items-center justify-between">
-            <div
-              className="h-8 w-24"
-              style={{
-                maskImage: "url(/logowafir.png)",
-                maskSize: "contain",
-                maskRepeat: "no-repeat",
-                maskPosition: "center",
-                backgroundColor: "#006699",
-              }}
-            />
-            <DiscountBadge percentage={30} />
+      {/* بطاقة العضوية — الرقم والتاريخ الحقيقيان من استجابة التسجيل */}
+      <div className="gradient-ocean relative mx-auto mb-8 max-w-sm overflow-hidden rounded-[20px] p-6 text-white shadow-soft-lg" dir="ltr">
+        {/* Shimmer sweep effect */}
+        <div className="card-shimmer-sweep pointer-events-none absolute inset-0" aria-hidden="true" />
+        <div className="relative z-10 space-y-5">
+          <div className="flex items-center justify-between">
+            <WafirLogo variant="mark" onDark className="h-10 w-auto" />
+            <DiscountBadge percentage={DISCOUNT_RATE} />
           </div>
-          <div className="mb-6 h-px bg-white/20" />
-          <p className="text-lg font-bold">بطاقة عضوية وفر</p>
-          <p className="mt-1 text-sm text-white/60">خصم 30% على جميع المنشآت المشتركة</p>
+          <div className="space-y-1.5 text-left">
+            <p className="text-sm font-bold text-white/90">بطاقة عضوية وفر</p>
+            <p
+              className="text-xl font-black tracking-[0.12em] tabular-nums text-white sm:text-2xl"
+              dir="ltr"
+              aria-label={`رقم العضوية ${data.membership_number}`}
+            >
+              {formatMembershipNumber(data.membership_number)}
+            </p>
+          </div>
+          <div className="flex items-end justify-between border-t border-white/15 pt-4">
+            <div className="text-left">
+              <p className="text-[10px] text-white/60">رقم العضوية</p>
+              <p className="text-xs text-white/70">خاص بك — احتفظ به</p>
+            </div>
+            <div className="text-left">
+              <p className="text-[10px] text-white/60">تاريخ الانتهاء</p>
+              <p className="text-sm font-bold tabular-nums text-white">
+                {formatExpiry(data.expires_at)}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <Button asChild size="lg" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px] w-full">
-        <Link href="/">استكشف العروض</Link>
-      </Button>
+      <div className="mx-auto flex max-w-sm flex-col gap-3">
+        <Button asChild size="lg" className="min-h-[44px] w-full rounded-full">
+          <Link href="/login">سجّل دخولك الآن</Link>
+        </Button>
+        <Button
+          asChild
+          size="lg"
+          variant="outline"
+          className="min-h-[44px] w-full rounded-full"
+        >
+          <Link href="/">العودة للرئيسية</Link>
+        </Button>
+      </div>
     </motion.div>
   );
 }
@@ -294,20 +329,12 @@ const prefersReduced = usePrefersReducedMotion();
       transition={{ duration: 0.5, ease: "easeOut" }}
       className="hidden lg:flex flex-col items-center justify-center bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 rounded-2xl p-10 text-center"
     >
-      <div
-        className="mb-6 h-16 w-40"
-        style={{
-          maskImage: "url(/logowafir.png)",
-          maskSize: "contain",
-          maskRepeat: "no-repeat",
-          maskPosition: "center",
-          backgroundColor: "var(--primary)",
-        }}
-      />
+      <WafirLogo className="mb-6 h-14 w-auto" />
       <h2 className="text-2xl font-extrabold text-foreground mb-2">انضم لعائلة وفر</h2>
-      <p className="text-sm text-muted-foreground mb-8 max-w-xs">
+      <p className="text-sm text-muted-foreground mb-6 max-w-xs">
         سجّل الآن واحصل على بطاقة خصم تنفعك في عشرات المنشآت
       </p>
+      <WafirPillBadge className="mb-8" />
       <ul className="space-y-4 text-right">
         {BENEFITS.map((benefit) => (
           <li key={benefit} className="flex items-center gap-3 text-sm text-foreground">
@@ -324,7 +351,7 @@ const prefersReduced = usePrefersReducedMotion();
 
 /* ─── Register Page ──────────────────────────────── */
 export default function RegisterPage() {
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [successData, setSuccessData] = useState<RegisterSuccessOut | null>(null);
   const { mutate, isPending } = useRegister();
   const selectedRegionId = useRegionStore((s) => s.selectedRegionId);
 const prefersReduced = usePrefersReducedMotion();
@@ -378,12 +405,12 @@ const prefersReduced = usePrefersReducedMotion();
   const onSubmit = (values: RegisterValues) => {
     mutate(values, {
       onSuccess: (response) => {
-        setSuccessMessage(response.detail || "أهلاً بك في منصة وفر!");
+        setSuccessData(response);
       },
     });
   };
 
-  if (successMessage) return <div className="mx-auto w-full max-w-md px-4 py-10"><SuccessScreen message={successMessage} /></div>;
+  if (successData) return <div className="mx-auto w-full max-w-md px-4 py-10"><SuccessScreen data={successData} /></div>;
 
   const formAnimation = prefersReduced
     ? { initial: { opacity: 1 }, animate: { opacity: 1 } }
@@ -463,7 +490,7 @@ const prefersReduced = usePrefersReducedMotion();
 
               <p className="text-center text-sm text-muted-foreground">
                 لديك حساب بالفعل؟{" "}
-                <Link href="/" className="font-medium text-secondary hover:underline">
+                <Link href="/login" className="font-medium text-secondary hover:underline">
                   تسجيل الدخول
                 </Link>
               </p>

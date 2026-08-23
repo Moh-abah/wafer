@@ -18,15 +18,15 @@ function getPasswordStrength(password: string): { label: string; color: string; 
     return { label: "", color: "bg-muted", width: "w-0" };
   }
   if (password.length < 6) {
-    return { label: "ضعيفة", color: "bg-red-500", width: "w-1/3" };
+    return { label: "ضعيفة", color: "bg-destructive", width: "w-1/3" };
   }
   if (password.length >= 6 && /[0-9]/.test(password)) {
     if (password.length >= 8 && /[A-Z]/.test(password) && /[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\]/.test(password)) {
-      return { label: "قوية", color: "bg-green-500", width: "w-full" };
+      return { label: "قوية", color: "bg-success", width: "w-full" };
     }
-    return { label: "متوسطة", color: "bg-yellow-500", width: "w-2/3" };
+    return { label: "متوسطة", color: "bg-accent", width: "w-2/3" };
   }
-  return { label: "ضعيفة", color: "bg-red-500", width: "w-1/3" };
+  return { label: "ضعيفة", color: "bg-destructive", width: "w-1/3" };
 }
 
 export default function OwnerSettingsPage() {
@@ -269,9 +269,9 @@ export default function OwnerSettingsPage() {
               <span
                 className={cn(
                   "text-xs font-medium min-w-[48px] text-left",
-                  passwordStrength.label === "ضعيفة" && "text-red-500",
-                  passwordStrength.label === "متوسطة" && "text-yellow-500",
-                  passwordStrength.label === "قوية" && "text-green-500"
+                  passwordStrength.label === "ضعيفة" && "text-destructive",
+                  passwordStrength.label === "متوسطة" && "text-accent",
+                  passwordStrength.label === "قوية" && "text-success"
                 )}
               >
                 {passwordStrength.label}

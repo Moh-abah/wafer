@@ -49,9 +49,6 @@ export const metadata: Metadata = {
     "منصة وفر — كتالوج بطاقات الخصم بنسبة 30% على جميع المطاعم والمقاهي والمرافق العامة. اختر منطقتك واستمتع بالعروض.",
   keywords: ["وفر", "Wafir", "بطاقات خصم", "خصم 30%", "مطاعم", "مقاهي", "عروض"],
   authors: [{ name: "وفر" }],
-  icons: {
-    icon: "/logowafir.png",
-  },
 };
 
 export default function RootLayout({

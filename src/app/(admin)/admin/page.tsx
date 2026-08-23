@@ -76,14 +76,14 @@ interface StatConfig {
 }
 
 const STAT_CONFIGS: StatConfig[] = [
-  { key: "regions", label: "المناطق", icon: Map, color: "text-blue-500", bg: "bg-blue-500/15", border: "border-l-blue-500", trend: { value: "+8%", positive: true } },
-  { key: "cards", label: "البطاقات", icon: CreditCard, color: "text-violet-500", bg: "bg-violet-500/15", border: "border-l-violet-500", trend: { value: "+12%", positive: true } },
-  { key: "published_cards", label: "البطاقات المنشورة", icon: Eye, color: "text-emerald-500", bg: "bg-emerald-500/15", border: "border-l-emerald-500", trend: { value: "+5%", positive: true } },
-  { key: "facilities", label: "المنشآت", icon: Store, color: "text-orange-500", bg: "bg-orange-500/15", border: "border-l-orange-500", trend: { value: "+15%", positive: true } },
-  { key: "customers", label: "العملاء", icon: Users, color: "text-sky-500", bg: "bg-sky-500/15", border: "border-l-sky-500", trend: { value: "+22%", positive: true } },
-  { key: "owners", label: "المالكون", icon: UserCog, color: "text-amber-500", bg: "bg-amber-500/15", border: "border-l-amber-500", trend: { value: "-3%", positive: false } },
-  { key: "products", label: "المنتجات", icon: Package, color: "text-pink-500", bg: "bg-pink-500/15", border: "border-l-pink-500", trend: { value: "+9%", positive: true } },
-  { key: "available_products", label: "المنتجات المتاحة", icon: PackageCheck, color: "text-teal-500", bg: "bg-teal-500/15", border: "border-l-teal-500", trend: { value: "+4%", positive: true } },
+  { key: "regions", label: "المناطق", icon: Map, color: "text-primary", bg: "bg-primary/15", border: "border-l-primary", trend: { value: "+8%", positive: true } },
+  { key: "cards", label: "البطاقات", icon: CreditCard, color: "text-secondary", bg: "bg-secondary/15", border: "border-l-secondary", trend: { value: "+12%", positive: true } },
+  { key: "published_cards", label: "البطاقات المنشورة", icon: Eye, color: "text-success", bg: "bg-success/15", border: "border-l-success", trend: { value: "+5%", positive: true } },
+  { key: "facilities", label: "المنشآت", icon: Store, color: "text-accent", bg: "bg-accent/15", border: "border-l-accent", trend: { value: "+15%", positive: true } },
+  { key: "customers", label: "العملاء", icon: Users, color: "text-cat-facility", bg: "bg-cat-facility/15", border: "border-l-cat-facility", trend: { value: "+22%", positive: true } },
+  { key: "owners", label: "المالكون", icon: UserCog, color: "text-chart-4", bg: "bg-chart-4/15", border: "border-l-chart-4", trend: { value: "-3%", positive: false } },
+  { key: "products", label: "المنتجات", icon: Package, color: "text-cat-restaurant", bg: "bg-cat-restaurant/15", border: "border-l-cat-restaurant", trend: { value: "+9%", positive: true } },
+  { key: "available_products", label: "المنتجات المتاحة", icon: PackageCheck, color: "text-cat-cafe", bg: "bg-cat-cafe/15", border: "border-l-cat-cafe", trend: { value: "+4%", positive: true } },
 ];
 
 const STAT_GRADIENTS = [
@@ -132,7 +132,7 @@ function StatCard({ config, isLoading, value, index }: StatCardProps) {
           </div>
           <span className={cn(
             "flex items-center gap-0.5 text-xs font-medium",
-            config.trend.positive ? "text-emerald-500" : "text-destructive"
+            config.trend.positive ? "text-success" : "text-destructive"
           )}>
             <TrendIcon className="h-3.5 w-3.5" />
             {config.trend.value}
@@ -187,24 +187,24 @@ const QUICK_ACTIONS: QuickAction[] = [
     subtitle: "إضافة مطعم أو مقهى جديد",
     href: "/admin/facilities",
     icon: Store,
-    color: "text-orange-500",
-    bg: "bg-orange-500/15",
+    color: "text-accent",
+    bg: "bg-accent/15",
   },
   {
     label: "إدارة البطاقات",
     subtitle: "إنشاء وتعديل بطاقات الخصم",
     href: "/admin/cards",
     icon: CreditCard,
-    color: "text-violet-500",
-    bg: "bg-violet-500/15",
+    color: "text-cat-facility",
+    bg: "bg-cat-facility/15",
   },
   {
     label: "عرض العملاء",
     subtitle: "عرض وإدارة حسابات المستخدمين",
     href: "/admin/users",
     icon: Users,
-    color: "text-sky-500",
-    bg: "bg-sky-500/15",
+    color: "text-secondary",
+    bg: "bg-secondary/15",
   },
 ];
 
@@ -217,8 +217,8 @@ const ROLE_LABELS: Record<UserRole, string> = {
 
 const ROLE_COLORS: Record<UserRole, string> = {
   admin: "bg-primary/15 text-primary border-primary/25 hover:bg-primary/15",
-  owner: "bg-amber-500/15 text-amber-500 border-amber-500/25 hover:bg-amber-500/15",
-  customer: "bg-teal-500/15 text-teal-500 border-teal-500/25 hover:bg-teal-500/15",
+  owner: "bg-accent/15 text-accent border-accent/25 hover:bg-accent/15",
+  customer: "bg-secondary/15 text-secondary border-secondary/25 hover:bg-secondary/15",
 };
 
 const FACILITY_TYPE_LABELS: Record<FacilityType, string> = {
@@ -384,9 +384,9 @@ const prefersReduced = usePrefersReducedMotion();
     const published = allCards.filter((c) => c.is_published).length;
     const draft = allCards.filter((c) => !c.is_published).length;
     return [
-      { label: "منشورة", count: published, color: "#10b981", bgColor: "bg-emerald-500/15" },
-      { label: "مسودة", count: draft, color: "#71717a", bgColor: "bg-muted" },
-      { label: "منتهية", count: 0, color: "#ef4444", bgColor: "bg-destructive/15" },
+      { label: "منشورة", count: published, color: "var(--success)", bgColor: "bg-success/15" },
+      { label: "مسودة", count: draft, color: "var(--muted-foreground)", bgColor: "bg-muted" },
+      { label: "منتهية", count: 0, color: "var(--destructive)", bgColor: "bg-destructive/15" },
     ];
   }, [allCards]);
   const cardTotal = allCards.length;
@@ -500,10 +500,10 @@ const prefersReduced = usePrefersReducedMotion();
           <CardTitle className="text-lg font-semibold">نظرة سريعة</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <MiniBarChart label="المنشآت" value={stats.facilities} max={50} color="bg-orange-500" delay={0.1} reduced={prefersReduced ?? false} />
-          <MiniBarChart label="البطاقات المنشورة" value={stats.published_cards} max={20} color="bg-emerald-500" delay={0.2} reduced={prefersReduced ?? false} />
-          <MiniBarChart label="العملاء" value={stats.customers} max={200} color="bg-sky-500" delay={0.3} reduced={prefersReduced ?? false} />
-          <MiniBarChart label="المنتجات المتاحة" value={stats.available_products} max={100} color="bg-teal-500" delay={0.4} reduced={prefersReduced ?? false} />
+          <MiniBarChart label="المنشآت" value={stats.facilities} max={50} color="bg-accent" delay={0.1} reduced={prefersReduced ?? false} />
+          <MiniBarChart label="البطاقات المنشورة" value={stats.published_cards} max={20} color="bg-success" delay={0.2} reduced={prefersReduced ?? false} />
+          <MiniBarChart label="العملاء" value={stats.customers} max={200} color="bg-secondary" delay={0.3} reduced={prefersReduced ?? false} />
+          <MiniBarChart label="المنتجات المتاحة" value={stats.available_products} max={100} color="bg-cat-cafe" delay={0.4} reduced={prefersReduced ?? false} />
         </CardContent>
       </Card>
 

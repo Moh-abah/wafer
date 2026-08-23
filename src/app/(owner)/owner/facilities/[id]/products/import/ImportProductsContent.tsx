@@ -70,7 +70,7 @@ function ColumnItem({ name, required }: { name: string; required: boolean }) {
   return (
     <div className="flex items-center gap-2 rounded-lg border px-3 py-2">
       {required ? (
-        <Check className="h-4 w-4 shrink-0 text-teal-500 dark:text-teal-400" />
+        <Check className="h-4 w-4 shrink-0 text-secondary" />
       ) : (
         <XIcon className="h-4 w-4 shrink-0 text-muted-foreground/50" />
       )}
@@ -104,7 +104,7 @@ function StepIndicator({ step, currentStep, prefersReduced }: { step: 1 | 2 | 3;
         className={cn(
           "flex h-8 w-8 items-center justify-center rounded-full border-2 transition-colors",
           isActive && "bg-primary text-primary-foreground border-primary",
-          isCompleted && "bg-emerald-500 text-white border-emerald-500",
+          isCompleted && "bg-success text-white border-success",
           !isActive && !isCompleted && "border-muted-foreground/30 text-muted-foreground"
         )}
       >
@@ -118,7 +118,7 @@ function StepIndicator({ step, currentStep, prefersReduced }: { step: 1 | 2 | 3;
         className={cn(
           "text-xs whitespace-nowrap",
           isActive && "font-semibold text-primary",
-          isCompleted && "text-emerald-600 dark:text-emerald-400",
+          isCompleted && "text-success",
           !isActive && !isCompleted && "text-muted-foreground"
         )}
       >
@@ -217,9 +217,9 @@ const prefersReduced = usePrefersReducedMotion();
     const isSuccess = result.status === "success";
     const isPartial = result.status === "partial" || result.errors.length > 0;
     const statusColor = isSuccess
-      ? "text-teal-600 dark:text-teal-400"
+      ? "text-secondary"
       : isPartial
-        ? "text-amber-600 dark:text-amber-400"
+        ? "text-accent"
         : "text-destructive";
 
     return (
@@ -242,7 +242,7 @@ const prefersReduced = usePrefersReducedMotion();
         >
           <Card className={cn(
             "rounded-2xl border-2 overflow-hidden",
-            isSuccess ? "border-teal-500/50" : isPartial ? "border-amber-500/50" : "border-destructive/50"
+            isSuccess ? "border-secondary/50" : isPartial ? "border-accent/50" : "border-destructive/50"
           )}>
             <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
               <motion.div
@@ -251,9 +251,9 @@ const prefersReduced = usePrefersReducedMotion();
                 transition={{ type: "spring", stiffness: 200, damping: 15 }}
               >
                 {isSuccess ? (
-                  <CheckCircle2 className="h-16 w-16 text-teal-600 dark:text-teal-400" />
+                  <CheckCircle2 className="h-16 w-16 text-secondary" />
                 ) : isPartial ? (
-                  <AlertCircle className="h-16 w-16 text-amber-600 dark:text-amber-400" />
+                  <AlertCircle className="h-16 w-16 text-accent" />
                 ) : (
                   <XCircle className="h-16 w-16 text-destructive" />
                 )}
@@ -263,7 +263,7 @@ const prefersReduced = usePrefersReducedMotion();
                 <p className="mt-2 text-sm text-muted-foreground">
                   تم استيراد <strong>{result.imported_count}</strong> منتج
                   {result.errors.length > 0 && (
-                    <span className="text-amber-600 dark:text-amber-400">
+                    <span className="text-accent">
                       {" "}مع <strong>{result.errors.length}</strong> خطأ
                     </span>
                   )}
@@ -272,9 +272,9 @@ const prefersReduced = usePrefersReducedMotion();
 
               {/* Color-coded summary badges */}
               <div className="flex gap-3 mt-2">
-                <div className="flex items-center gap-1.5 rounded-full bg-teal-500/10 px-3 py-1.5 text-sm">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-teal-500" />
-                  <span className="font-semibold text-teal-600 dark:text-teal-400">{result.imported_count}</span>
+                <div className="flex items-center gap-1.5 rounded-full bg-secondary/10 px-3 py-1.5 text-sm">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-secondary" />
+                  <span className="font-semibold text-secondary">{result.imported_count}</span>
                   <span className="text-muted-foreground">ناجح</span>
                 </div>
                 {result.errors.length > 0 && (
@@ -344,7 +344,7 @@ const prefersReduced = usePrefersReducedMotion();
 
         <div className="flex gap-3">
           <Button
-            className="rounded-full bg-teal-600 text-white hover:bg-teal-700 min-h-[44px]"
+            className="rounded-full bg-primary text-white hover:bg-primary/90 min-h-[44px]"
             onClick={() => router.push(`/owner/facilities/${facilityId}/products`)}
           >
             العودة للمنتجات
@@ -425,8 +425,8 @@ const prefersReduced = usePrefersReducedMotion();
       {/* Import rules card */}
       <Card className="rounded-xl border-border/50">
         <CardContent className="flex items-start gap-3 p-4">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-500/10">
-            <Info className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/10">
+            <Info className="h-5 w-5 text-accent" />
           </div>
           <div>
             <p className="font-semibold">القواعد:</p>
@@ -448,7 +448,7 @@ const prefersReduced = usePrefersReducedMotion();
             : isDragging
               ? "border-primary bg-primary/5 scale-[1.01] shadow-lg shadow-primary/5"
               : file
-                ? "border-teal-500/50 bg-teal-500/5"
+                ? "border-secondary/50 bg-secondary/5"
                 : "border-muted-foreground/25 hover:border-muted-foreground/50 hover:bg-muted/30"
         )}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -514,8 +514,8 @@ const prefersReduced = usePrefersReducedMotion();
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.2 }}
             >
-              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-teal-500/10">
-                <FileSpreadsheet className="h-10 w-10 text-teal-600 dark:text-teal-400" />
+              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-secondary/10">
+                <FileSpreadsheet className="h-10 w-10 text-secondary" />
               </div>
               <div>
                 <p className="font-semibold">{file.name}</p>
@@ -601,7 +601,7 @@ const prefersReduced = usePrefersReducedMotion();
           تحميل قالب جاهز
         </Button>
         <Button
-          className="gap-2 rounded-full bg-teal-600 text-white hover:bg-teal-700 min-h-[44px]"
+          className="gap-2 rounded-full bg-primary text-white hover:bg-primary/90 min-h-[44px]"
           disabled={!file || importMutation.isPending}
           onClick={handleUpload}
         >

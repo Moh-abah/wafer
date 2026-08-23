@@ -23,6 +23,14 @@ function getOwnerToken(): string | null {
   return match ? decodeURIComponent(match.split("=")[1]) : null;
 }
 
+/**
+ * مسارات الدخول: أخطاء 401/403 تُعرض فيها رسالة الخادم (detail)
+ * مباشرة — ولا تُعدّ «انتهت الجلسة» ولا تمسح التوكن.
+ */
+function isAuthEndpoint(url: string): boolean {
+  return url.startsWith("/owner/login");
+}
+
 async function fetchWithOwnerAuth<T>(
   method: string,
   url: string,
@@ -60,18 +68,20 @@ async function fetchWithOwnerAuth<T>(
     );
   }
 
-  if (response.status === 401) {
+  const authEndpoint = isAuthEndpoint(url);
+
+  if (response.status === 401 && !authEndpoint) {
     if (typeof window !== "undefined") {
       useOwnerAuthStore.getState().clearAuth();
     }
     throw new OwnerApiError("انتهت الجلسة. يرجى تسجيل الدخول مجددًا.", 401, null);
   }
 
-  if (response.status === 403) {
+  if (response.status === 403 && !authEndpoint) {
     throw new OwnerApiError("لا تملك صلاحية الوصول", 403, null);
   }
 
-  if (response.status === 404) {
+  if (response.status === 404 && !authEndpoint) {
     throw new OwnerApiError("غير موجود", 404, null);
   }
 

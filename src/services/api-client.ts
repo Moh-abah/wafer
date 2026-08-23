@@ -17,6 +17,14 @@ export class ApiError extends Error {
 
 type TokenCookieName = "wafir_admin_token" | "wafir_owner_token";
 
+/**
+ * مسارات الدخول: أخطاء 401/403 تُعرض فيها رسالة الخادم (detail)
+ * مباشرة — ولا تُعدّ «انتهت الجلسة» ولا تمسح التوكنات.
+ */
+function isAuthEndpoint(url: string): boolean {
+  return url.startsWith("/admin/login");
+}
+
 function getToken(): string | null {
   if (typeof window === "undefined") return null;
   const fromStore = useAuthStore.getState().accessToken;
@@ -67,7 +75,9 @@ async function fetchWithAuth<T>(
     );
   }
 
-  if (response.status === 401) {
+  const authEndpoint = isAuthEndpoint(url);
+
+  if (response.status === 401 && !authEndpoint) {
     if (typeof window !== "undefined") {
       useAuthStore.getState().clearAuth();
       useOwnerAuthStore.getState().clearAuth();
@@ -75,11 +85,11 @@ async function fetchWithAuth<T>(
     throw new ApiError("انتهت الجلسة. يرجى تسجيل الدخول مجددًا.", 401, null);
   }
 
-  if (response.status === 403) {
+  if (response.status === 403 && !authEndpoint) {
     throw new ApiError("لا تملك صلاحية الوصول", 403, null);
   }
 
-  if (response.status === 404) {
+  if (response.status === 404 && !authEndpoint) {
     throw new ApiError("غير موجود", 404, null);
   }
 

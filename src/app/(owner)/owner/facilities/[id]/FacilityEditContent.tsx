@@ -159,7 +159,7 @@ const prefersReduced = usePrefersReducedMotion();
         </div>
         <div className="flex items-center gap-2 rounded-full border bg-card px-4 py-2 text-sm">
           {facility?.is_visible ? (
-            <Eye className="h-4 w-4 text-teal-500 dark:text-teal-400" />
+            <Eye className="h-4 w-4 text-secondary" />
           ) : (
             <EyeOff className="h-4 w-4 text-muted-foreground" />
           )}
@@ -167,7 +167,7 @@ const prefersReduced = usePrefersReducedMotion();
           <span className={cn(
             "font-semibold",
             facility?.is_visible
-              ? "text-teal-600 dark:text-teal-400"
+              ? "text-secondary"
               : "text-muted-foreground"
           )}>
             {facility?.is_visible ? "ظاهرة" : "مخفية"}
@@ -336,8 +336,8 @@ const prefersReduced = usePrefersReducedMotion();
                 className={cn(
                   "rounded-full min-h-[44px] gap-2 transition-all duration-300",
                   showSuccess
-                    ? "bg-emerald-600 hover:bg-emerald-600 text-white"
-                    : "bg-teal-600 text-white hover:bg-teal-700"
+                    ? "bg-success hover:bg-success text-white"
+                    : "bg-primary text-primary-foreground hover:bg-primary/90"
                 )}
                 disabled={updateMutation.isPending || showSuccess}
               >

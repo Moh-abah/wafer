@@ -30,6 +30,7 @@ import { useAdminFacilities } from "@/hooks/useAdminFacilities";
 import { useAdminCards } from "@/hooks/useAdminCards";
 import { useAdminUsers } from "@/hooks/useAdminUsers";
 import { useAdminAuditLogs } from "@/hooks/useAdminAuditLogs";
+import { WafirLogo } from "@/components/shared/WafirLogo";
 
 type NavKey = "facilities" | "cards" | "users" | "audit-logs";
 
@@ -170,16 +171,7 @@ function SidebarBrand({ collapsed }: { collapsed: boolean }) {
       "flex items-center gap-2 px-5 py-4",
       collapsed && "justify-center px-2"
     )}>
-      <div
-        className="h-9 w-9 shrink-0"
-        style={{
-          maskImage: "url(/logowafir.png)",
-          maskSize: "contain",
-          maskRepeat: "no-repeat",
-          maskPosition: "center",
-          backgroundColor: "var(--primary)",
-        }}
-      />
+      <WafirLogo variant="mark" className="h-9 w-9 shrink-0" />
       {!collapsed && (
         <div className="flex flex-col leading-tight">
           <span className="text-sm font-semibold">وفر</span>

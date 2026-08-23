@@ -17,3 +17,16 @@ export function formatDate(iso: string): string {
     minute: "2-digit",
   });
 }
+
+/** تقسيم رقم العضوية (16 خانة) إلى مجموعات 4×4 */
+export function formatMembershipNumber(num: string): string {
+  const digits = num.replace(/\D/g, "");
+  return digits.replace(/(\d{4})(?=\d)/g, "$1 ");
+}
+
+/** صيغة MM/YY من تاريخ ISO (YYYY-MM-DD) */
+export function formatExpiry(iso: string): string {
+  const [y, m] = iso.split("-");
+  if (!y || !m) return "";
+  return `${m}/${y.slice(2)}`;
+}

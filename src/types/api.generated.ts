@@ -237,6 +237,39 @@ export interface AdminLogin {
   password: string;
 }
 
+// ─── Customer Auth / Me (verified live on production) ──
+export interface CustomerLogin {
+  identifier: string;
+  password: string;
+}
+
+export interface MyMembershipCard {
+  card_id: number;
+  card_name: string;
+  discount_rate: number;
+  membership_number: string;
+  membership_type: string;
+  assignment_date: string;
+  expires_at: string;
+  is_active: boolean;
+}
+
+export interface MeOut {
+  id: number;
+  full_name: string;
+  email: string;
+  phone: string;
+  role: UserRole;
+  created_at: string;
+  membership: MyMembershipCard | null;
+}
+
+/** PUT /me — البريد ثابت، الاسم والجوال فقط */
+export interface MeUpdate {
+  full_name?: string;
+  phone?: string;
+}
+
 // ─── Audit Log ─────────────────────────────────────────
 export interface AuditLog {
   id: number;
@@ -267,8 +300,16 @@ export interface Paginated<T> {
   pages: number;
 }
 
-// ─── Register Response (actually MessageOut) ───────────
-export type RegisterResponse = MessageOut;
+// ─── Register Response (verified live) ─────────────────
+/** POST /auth/register → {detail, status_code, user_id, membership_number, expires_at} */
+export interface RegisterSuccessOut {
+  detail: string;
+  status_code: number;
+  user_id: number;
+  membership_number: string;
+  expires_at: string;
+}
+export type RegisterResponse = RegisterSuccessOut;
 
 // ─── Legacy aliases (keep for backward compat during migration) ───
 /** @deprecated Use Card */

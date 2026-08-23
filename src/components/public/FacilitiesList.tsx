@@ -23,10 +23,10 @@ const FACILITY_TYPE_LABEL: Record<FacilityType, string> = {
 };
 
 const FACILITY_TYPE_BADGE_CLASS: Record<FacilityType, string> = {
-  restaurant: "bg-primary/15 text-primary border-primary/20 hover:bg-primary/15",
-  cafe: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20 hover:bg-amber-500/15",
+  restaurant: "bg-cat-restaurant/15 text-cat-restaurant border-cat-restaurant/25 hover:bg-cat-restaurant/15",
+  cafe: "bg-cat-cafe/15 text-cat-cafe border-cat-cafe/25 hover:bg-cat-cafe/15",
   public_facility:
-    "bg-secondary text-secondary-foreground border-border hover:bg-secondary",
+    "bg-cat-facility/15 text-cat-facility border-cat-facility/25 hover:bg-cat-facility/15",
 };
 
 export function FacilitiesList() {

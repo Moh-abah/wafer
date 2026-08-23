@@ -32,6 +32,7 @@ import { useUiStore } from "@/store/ui.store";
 import { useOwnerLogout } from "@/hooks/useOwnerAuth";
 import { useMyFacilities } from "@/hooks/useMyFacilities";
 import { Skeleton } from "@/components/ui/skeleton";
+import { WafirLogo } from "@/components/shared/WafirLogo";
 
 const FACILITY_TYPE_LABELS: Record<string, string> = {
   restaurant: "مطعم",
@@ -50,16 +51,7 @@ function SidebarBrand({ collapsed }: { collapsed: boolean }) {
       "flex items-center gap-2 px-5 py-4",
       collapsed && "justify-center px-2"
     )}>
-      <div
-        className="h-9 w-9 shrink-0"
-        style={{
-          maskImage: "url(/logowafir.png)",
-          maskSize: "contain",
-          maskRepeat: "no-repeat",
-          maskPosition: "center",
-          backgroundColor: "var(--primary)",
-        }}
-      />
+      <WafirLogo variant="mark" className="h-9 w-9 shrink-0" />
       {!collapsed && (
         <div className="flex flex-col leading-tight">
           <span className="text-sm font-semibold">وفر</span>

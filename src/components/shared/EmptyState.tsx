@@ -7,9 +7,11 @@ interface EmptyStateProps {
   icon: LucideIcon;
   title: string;
   description?: string;
+  /** إجراء اختياري (زر مثلاً) يظهر أسفل الرسالة */
+  action?: React.ReactNode;
 }
 
-export function EmptyState({ icon: Icon, title, description }: EmptyStateProps) {
+export function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
   return (
     <div className="flex items-center justify-center py-16 px-4">
       <div
@@ -34,6 +36,7 @@ export function EmptyState({ icon: Icon, title, description }: EmptyStateProps) 
         {description && (
           <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
         )}
+        {action && <div className="mt-5">{action}</div>}
       </div>
     </div>
   );

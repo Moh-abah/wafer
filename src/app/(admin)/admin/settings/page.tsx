@@ -34,8 +34,8 @@ const STRENGTH_LABELS: Record<string, string> = {
 
 const STRENGTH_COLORS: Record<string, string> = {
   weak: "bg-destructive",
-  medium: "bg-amber-500",
-  strong: "bg-emerald-500",
+  medium: "bg-accent",
+  strong: "bg-success",
 };
 
 export default function AdminSettingsPage() {
@@ -268,8 +268,8 @@ export default function AdminSettingsPage() {
                 <span className={cn(
                   "text-xs font-medium",
                   passwordStrength.level === "weak" && "text-destructive",
-                  passwordStrength.level === "medium" && "text-amber-500",
-                  passwordStrength.level === "strong" && "text-emerald-500",
+                  passwordStrength.level === "medium" && "text-accent",
+                  passwordStrength.level === "strong" && "text-success",
                 )}>
                   {STRENGTH_LABELS[passwordStrength.level]}
                 </span>

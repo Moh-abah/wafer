@@ -45,11 +45,11 @@ const CARD_COLORS = [
   "bg-primary",
   "bg-secondary",
   "bg-accent",
-  "bg-emerald-500",
-  "bg-orange-500",
-  "bg-violet-500",
-  "bg-pink-500",
-  "bg-teal-500",
+  "bg-success",
+  "bg-chart-4",
+  "bg-cat-facility",
+  "bg-cat-restaurant",
+  "bg-cat-cafe",
 ];
 
 const TABS = [
@@ -186,10 +186,10 @@ export default function AdminCardsPage() {
           <Badge variant="outline" className="gap-1 px-3 py-1 text-xs">
             {totalCards} بطاقة
           </Badge>
-          <Badge variant="outline" className="gap-1 px-3 py-1 text-xs bg-emerald-500/10 text-emerald-500 border-emerald-500/25">
+          <Badge variant="outline" className="gap-1 px-3 py-1 text-xs bg-success/10 text-success border-success/25">
             {publishedCount} منشورة
           </Badge>
-          <Badge variant="outline" className="gap-1 px-3 py-1 text-xs bg-amber-500/10 text-amber-500 border-amber-500/25">
+          <Badge variant="outline" className="gap-1 px-3 py-1 text-xs bg-accent/10 text-accent border-accent/25">
             {draftCount} مسودة
           </Badge>
         </div>
@@ -317,7 +317,7 @@ export default function AdminCardsPage() {
                   </TableCell>
                   <TableCell>
                     {card.is_published ? (
-                      <Badge className="bg-emerald-500/15 text-emerald-500 border-emerald-500/25 hover:bg-emerald-500/15">
+                      <Badge className="bg-success/15 text-success border-success/25 hover:bg-success/15">
                         <EyeIcon className="h-3 w-3 ml-1" />
                         منشورة
                       </Badge>

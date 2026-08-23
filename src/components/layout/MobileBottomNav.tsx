@@ -2,80 +2,64 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, CreditCard, Building2, UserPlus } from "lucide-react";
+import { Home, Store, Tag, CircleUserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface NavItem {
-  href: string;
-  label: string;
-  icon: typeof Home;
-  hasBadge: boolean;
-  isProminent: boolean;
-}
-
-const NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "الرئيسية", icon: Home, hasBadge: true, isProminent: false },
-  { href: "/facilities", label: "المنشآت", icon: Building2, hasBadge: false, isProminent: false },
-  { href: "/#how-it-works", label: "كيف تعمل", icon: CreditCard, hasBadge: false, isProminent: false },
-  { href: "/register", label: "انضم", icon: UserPlus, hasBadge: false, isProminent: true },
-];
+/**
+ * التنقل السفلي (موبايل) — 4 تبويبات فقط:
+ * الرئيسية | المتاجر | العروض (نفس وجهة المتاجر مؤقتاً) | حسابي
+ * النشط: text-primary + خلفية كبسولة خفيفة primary/10.
+ */
+const NAV_ITEMS = [
+  { href: "/", label: "الرئيسية", icon: Home },
+  { href: "/facilities", label: "المتاجر", icon: Store },
+  { href: "/facilities", label: "العروض", icon: Tag },
+  { href: "/account", label: "حسابي", icon: CircleUserRound },
+] as const;
 
 export function MobileBottomNav() {
   const pathname = usePathname();
 
+  /* أول تطابق يُعدّ النشط (المتاجر والعروض نفس الوجهة مؤقتاً) */
+  const activeIndex = NAV_ITEMS.findIndex((item) =>
+    item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
+  );
+
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-primary/20 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80 md:hidden"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/60 bg-card/95 backdrop-blur-xl supports-[backdrop-filter]:bg-card/80 md:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       role="navigation"
       aria-label="التنقل الرئيسي"
     >
       <div className="flex items-center justify-around">
-        {NAV_ITEMS.map((item) => {
-          const isActive =
-            item.href === "/"
-              ? pathname === "/"
-              : pathname.startsWith(item.href);
-
-          if (item.isProminent) {
-            return (
-              <Link
-                key={item.label}
-                href={item.href}
-                className={cn(
-                  "flex min-h-[56px] min-w-[64px] flex-col items-center justify-center gap-1 px-3 py-2 transition-all duration-200",
-                  "text-primary shadow-[0_0_12px_rgba(0,102,153,0.4)]"
-                )}
-                style={{
-                  textShadow: "0 0 12px rgba(0, 102, 153, 0.5)",
-                }}
-              >
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30">
-                  <item.icon className="h-5 w-5" strokeWidth={2.5} />
-                </div>
-                <span className="text-[11px] leading-tight font-bold">
-                  {item.label}
-                </span>
-              </Link>
-            );
-          }
-
+        {NAV_ITEMS.map((item, idx) => {
+          const isActive = idx === activeIndex;
+          const Icon = item.icon;
           return (
             <Link
               key={item.label}
               href={item.href}
+              aria-current={isActive ? "page" : undefined}
               className={cn(
-                "relative flex min-h-[56px] min-w-[64px] flex-col items-center justify-center gap-1 px-3 py-2 transition-colors",
+                "flex min-h-[56px] min-w-[64px] flex-col items-center justify-center gap-1 px-3 py-2 transition-colors",
                 isActive
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
               )}
-              aria-current={isActive ? "page" : undefined}
             >
-              {item.hasBadge && (
-                <span className="absolute top-2 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-primary animate-pulse" />
-              )}
-              <item.icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 2} />
+              <span
+                className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded-full transition-colors",
+                  isActive && "bg-primary/10"
+                )}
+              >
+                <Icon
+                  className="h-5 w-5"
+                  strokeWidth={isActive ? 2.5 : 2}
+                  aria-hidden="true"
+                />
+              </span>
               <span
                 className={cn(
                   "text-[11px] leading-tight",

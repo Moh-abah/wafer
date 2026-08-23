@@ -64,13 +64,13 @@ const ROLE_LABELS: Record<UserRole, string> = {
 
 const ROLE_COLORS: Record<UserRole, string> = {
   admin: "bg-primary/15 text-primary border-primary/25 hover:bg-primary/15",
-  owner: "bg-amber-500/15 text-amber-500 border-amber-500/25 hover:bg-amber-500/15",
-  customer: "bg-teal-500/15 text-teal-500 border-teal-500/25 hover:bg-teal-500/15",
+  owner: "bg-accent/15 text-accent border-accent/25 hover:bg-accent/15",
+  customer: "bg-secondary/15 text-secondary border-secondary/25 hover:bg-secondary/15",
 };
 
 const DIALOG_ROLE_BADGE_COLORS: Record<UserRole, string> = {
-  customer: "bg-blue-500/10 text-blue-500",
-  owner: "bg-teal-500/10 text-teal-500",
+  customer: "bg-secondary/10 text-secondary",
+  owner: "bg-accent/10 text-accent",
   admin: "bg-primary/10 text-primary",
 };
 

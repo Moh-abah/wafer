@@ -118,5 +118,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|api|robots.txt|sitemap.xml|manifest.webmanifest|icon.svg|logowafir.png).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|api|robots.txt|sitemap.xml|manifest.webmanifest|icon.svg|logo.svg|logo-mark.svg|fonts).*)"],
 };

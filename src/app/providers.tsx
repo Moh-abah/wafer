@@ -7,29 +7,16 @@ import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 
 /* ------------------------------------------------------------------ */
-/*  NProgress-style Top Loading Bar (CSS only, no library)              */
+/*  NProgress-style Top Loading Bar (CSS keyframes only, no state)      */
 /* ------------------------------------------------------------------ */
 function RouteLoadingBar() {
   const pathname = usePathname();
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [barKey, setBarKey] = React.useState(0);
 
-  React.useEffect(() => {
-    setIsLoading(true);
-    setBarKey((k) => k + 1);
-
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 900);
-
-    return () => clearTimeout(timer);
-  }, [pathname]);
-
-  if (!isLoading) return null;
-
+  /* يعاد تركيب الشريط تلقائياً عند تغيّر المسار عبر المفتاح،
+     والأنيميشن CSS ينتهي بالشفافية الكاملة (fill forwards) — بلا أي حالة. */
   return (
     <div
-      key={barKey}
+      key={pathname}
       className="nprogress-bar"
       role="progressbar"
       aria-label="جاري التحميل"

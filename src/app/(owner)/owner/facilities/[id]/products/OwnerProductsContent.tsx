@@ -521,7 +521,7 @@ const prefersReduced = usePrefersReducedMotion();
             transition={{ duration: 0.3, delay: 0.2 }}
           >
             <Button
-              className="gap-2 rounded-full bg-teal-600 text-white hover:bg-teal-700 min-h-[44px]"
+              className="gap-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px]"
               onClick={openCreate}
             >
               <Plus className="h-5 w-5" />
@@ -557,7 +557,7 @@ const prefersReduced = usePrefersReducedMotion();
               <span className="hidden sm:inline">استيراد</span>
             </Button>
             <Button
-              className="gap-2 rounded-full bg-teal-600 text-white hover:bg-teal-700"
+              className="gap-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
               onClick={openCreate}
             >
               <Plus className="h-4 w-4" />
@@ -642,7 +642,7 @@ const prefersReduced = usePrefersReducedMotion();
             <span className="hidden sm:inline">استيراد</span>
           </Button>
           <Button
-            className="gap-2 rounded-full bg-teal-600 text-white hover:bg-teal-700"
+            className="gap-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
             onClick={openCreate}
           >
             <Plus className="h-4 w-4" />
@@ -658,8 +658,8 @@ const prefersReduced = usePrefersReducedMotion();
           <span className="text-muted-foreground">الإجمالي:</span>
           <span className="font-semibold">{totalStatsData?.total ?? 0}</span>
         </div>
-        <div className="flex items-center gap-1.5 rounded-full bg-teal-500/10 px-3 py-1.5 text-sm">
-          <CheckCircle2 className="h-3.5 w-3.5 text-teal-500 dark:text-teal-400" />
+        <div className="flex items-center gap-1.5 rounded-full bg-secondary/10 px-3 py-1.5 text-sm">
+          <CheckCircle2 className="h-3.5 w-3.5 text-secondary" />
           <span className="text-muted-foreground">متاح:</span>
           <span className="font-semibold">{availableStatsData?.total ?? 0}</span>
         </div>
@@ -827,7 +827,7 @@ const prefersReduced = usePrefersReducedMotion();
                         className={cn(
                           "inline-block h-2.5 w-2.5 rounded-full",
                           product.is_available
-                            ? "bg-emerald-500"
+                            ? "bg-success"
                             : "bg-muted-foreground"
                         )}
                       />
@@ -933,7 +933,7 @@ const prefersReduced = usePrefersReducedMotion();
                         className={cn(
                           "inline-block h-2 w-2 rounded-full",
                           product.is_available
-                            ? "bg-emerald-500"
+                            ? "bg-success"
                             : "bg-muted-foreground"
                         )}
                       />
@@ -1003,7 +1003,7 @@ const prefersReduced = usePrefersReducedMotion();
                   className={cn(
                     "inline-block h-2.5 w-2.5 rounded-full",
                     product.is_available
-                      ? "bg-emerald-500"
+                      ? "bg-success"
                       : "bg-muted-foreground"
                   )}
                 />
@@ -1146,7 +1146,7 @@ const prefersReduced = usePrefersReducedMotion();
             <ProductFormFields form={form} setForm={setForm} errors={formErrors} onClearFields={() => setForm(EMPTY_FORM)} />
             <DialogFooter className="flex-row-reverse gap-2">
               <Button
-                className="rounded-full bg-teal-600 text-white hover:bg-teal-700"
+                className="rounded-full bg-primary text-white hover:bg-primary/90"
                 disabled={createMutation.isPending || updateMutation.isPending}
                 onClick={handleSave}
               >
@@ -1173,7 +1173,7 @@ const prefersReduced = usePrefersReducedMotion();
             <ProductFormFields form={form} setForm={setForm} errors={formErrors} onClearFields={() => setForm(EMPTY_FORM)} />
             <SheetFooter className="flex-row-reverse gap-2">
               <Button
-                className="rounded-full bg-teal-600 text-white hover:bg-teal-700"
+                className="rounded-full bg-primary text-white hover:bg-primary/90"
                 disabled={createMutation.isPending || updateMutation.isPending}
                 onClick={handleSave}
               >

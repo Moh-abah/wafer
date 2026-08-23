@@ -18,8 +18,8 @@ export function DiscountBadge({
       className={cn(
         "animate-badge-shimmer relative inline-flex items-center gap-1.5 overflow-hidden",
         "rounded-full px-3 py-1.5",
-        "bg-gradient-to-l from-[#FFA800] to-[#FFB833]",
-        "text-primary-foreground text-xs font-extrabold leading-none tracking-wide",
+        "bg-accent text-accent-foreground",
+        "text-xs font-extrabold leading-none tracking-wide",
         "shadow-lg shadow-accent/25",
         className
       )}

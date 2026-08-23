@@ -35,7 +35,7 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
 ];
 
 const TYPE_BADGE_CLASS: Record<FacilityType, string> = {
-  restaurant: "bg-teal-500/15 text-teal-400 border-teal-500/20",
+  restaurant: "bg-secondary/15 text-secondary border-secondary/20",
   cafe: "bg-accent/15 text-accent border-accent/20",
   public_facility: "bg-secondary/15 text-secondary border-secondary/20",
 };
