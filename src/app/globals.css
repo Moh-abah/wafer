@@ -130,6 +130,12 @@
   --shadow-soft-lg: 0 8px 24px rgba(29, 45, 68, 0.08);
 }
 
+
+[data-theme="dark"] {
+  --logo-blue: #6BB8E8;
+  /* لون فاتح يظهر على خلفيات داكنة */
+}
+
 /* ═══════════════════════════════════════════════════════════════
    Dark Mode — Wafir Ocean Identity
    Primary: #0E7BA6 (brighter ocean for dark bg) → Deep: #062A3D

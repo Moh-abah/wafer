@@ -59,7 +59,7 @@ function LoggedInMemberCard({ membership }: MemberCardBodyProps) {
         className="card-shimmer-sweep pointer-events-none absolute inset-0"
         aria-hidden="true"
       />
-      <div className="relative z-10 flex flex-col gap-5" dir="ltr">
+      <div className="relative z-10 flex flex-col gap-5" dir="rtl">
         {/* الشعار + الشارات */}
         <div className="flex items-start justify-between gap-3">
           <WafirLogo onDark className="h-10 w-auto sm:h-11" />

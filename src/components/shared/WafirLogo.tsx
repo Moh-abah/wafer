@@ -7,25 +7,30 @@ const TAG_PATH =
   "M4 4L20 4L28 12L28 22L12 28L4 20Z";
 
 interface WafirLogoProps {
-  className?: string;
-  href?: string;
-  showPill?: boolean;
+  /** اختياري: حجم الشعار */
   size?: "sm" | "md" | "lg";
-
-
+  /** رابط عند الضغط (اختياري) */
+  href?: string;
+  /** عرض شارة (بادج) أسفل الشعار (تظهر فقط في الوضع full) */
+  showPill?: boolean;
+  /** كلاسات إضافية */
+  className?: string;
   /** نوع الشعار: "full" = مع فر، "mark" = أيقونة فقط (التاغ + و) */
   variant?: "full" | "mark";
   /** على خلفية داكنة: يجعل لون "فر" أبيض (في وضع full) */
   onDark?: boolean;
+
+  color?: string;
 }
 
 export function WafirLogo({
-  className,
+  size = "sm",
   href = "/",
   showPill = false,
-  size = "sm", // ← أصبحت القيمة الافتراضية sm
+  className,
   variant = "full",
   onDark = false,
+  color,
 }: WafirLogoProps) {
   const sizeClasses = {
     sm: { text: "text-xl", tag: "w-7 h-7", pill: "text-[9px] px-2 py-0.5" },
@@ -36,6 +41,90 @@ export function WafirLogo({
   const s = sizeClasses[size];
   const isMark = variant === "mark";
 
+  // محتوى الشعار الأساسي (التاغ + و)
+  const logoContent = (
+    <div className="flex items-center gap-1">
+      <div className="relative inline-flex flex-col items-center">
+        {/* التاغ الذهبي المبتسم */}
+        <svg
+          className={cn("absolute -top-5 start-1 z-10", s.tag)}
+          viewBox="0 0 32 32"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path
+            d={TAG_PATH}
+            fill="var(--logo-gold)"
+            stroke="var(--logo-gold)"
+            strokeWidth="1.2"
+            opacity="0.9"
+          />
+          <circle cx="10" cy="10" r="3" fill="var(--logo-white)" opacity="0.85" />
+          <circle cx="14" cy="16" r="1.8" fill="var(--logo-white)" />
+          <circle cx="22" cy="16" r="1.8" fill="var(--logo-white)" />
+          <path
+            d="M13 20Q18 25 23 20"
+            stroke="var(--logo-white)"
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+          />
+        </svg>
+
+        {/* حرف «و» بالذهب */}
+        <span
+          className={cn("font-black leading-none", s.text)}
+          style={{ color: "var(--logo-gold)" }}
+        >
+          و
+        </span>
+      </div>
+
+      {/* حرفا «فر» – تظهر فقط في الوضع full وليس في mark */}
+      {!isMark && (
+        <span
+          className={cn("font-black leading-none", s.text)}
+          style={{
+            color: onDark ? "var(--logo-white)" : "var(--logo-blue)",
+          }}
+        >
+          فر
+        </span>
+      )}
+
+
+
+    </div>
+  );
+
+  // إذا لم يكن هناك href، نعرض بدون Link
+  if (!href) {
+    return (
+      <div
+        className={cn(
+          "inline-flex flex-col items-center gap-1 outline-none",
+          className
+        )}
+        aria-label="شعار وفر"
+      >
+        {logoContent}
+        {!isMark && showPill && (
+          <span
+            className={cn(
+              "rounded-full font-semibold text-white whitespace-nowrap",
+              s.pill
+            )}
+            style={{ background: "var(--logo-cyan)" }}
+          >
+            حياة أجمل.. مع خصومات أكثر
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  // مع Link
   return (
     <Link
       href={href}
@@ -45,55 +134,8 @@ export function WafirLogo({
       )}
       aria-label="وفر — الصفحة الرئيسية"
     >
-      <div className="flex items-center gap-1">
-        <div className="relative inline-flex flex-col items-center">
-          <svg
-            className={cn("absolute -top-5 start-1 z-10", s.tag)}
-            viewBox="0 0 32 32"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-          >
-            <path
-              d={TAG_PATH}
-              fill="var(--logo-gold)"
-              stroke="var(--logo-gold)"
-              strokeWidth="1.2"
-              opacity="0.9"
-            />
-            <circle cx="10" cy="10" r="3" fill="var(--logo-white)" opacity="0.85" />
-            <circle cx="14" cy="16" r="1.8" fill="var(--logo-white)" />
-            <circle cx="22" cy="16" r="1.8" fill="var(--logo-white)" />
-            <path
-              d="M13 20Q18 25 23 20"
-              stroke="var(--logo-white)"
-              strokeWidth="2"
-              fill="none"
-              strokeLinecap="round"
-            />
-          </svg>
-
-          <span
-            className={cn("font-black leading-none", s.text)}
-            style={{ color: "var(--logo-gold)" }}
-          >
-            و
-          </span>
-        </div>
-
-        <span
-          className={cn(
-            "font-black leading-none",
-            s.text
-         
-          )}
-          style={{ color: "var(--logo-blue)" }}
-        >
-          فر
-        </span>
-      </div>
-
-      {showPill && (
+      {logoContent}
+      {!isMark && showPill && (
         <span
           className={cn(
             "rounded-full font-semibold text-white whitespace-nowrap",
