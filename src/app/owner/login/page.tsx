@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion } from "framer-motion";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Building2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Card,
@@ -248,6 +248,14 @@ function OwnerLoginForm() {
           >
             <ArrowRight className="h-4 w-4" />
             العودة للرئيسية
+          </Link>
+          {/* تسجيل منشأة جديدة — لمن لديه منشأة وغير مسجل */}
+          <Link
+            href="/owner/register"
+            className="inline-flex min-h-[44px] items-center gap-1 text-sm font-medium text-primary hover:underline"
+          >
+            <Building2 className="h-4 w-4" aria-hidden="true" />
+            لديك منشأة وليس لديك حساب؟ سجّل منشأتك
           </Link>
           {/* ✅ النص السفلي: استبدال text-white/50 */}
           <span className="text-xs text-muted-foreground/70">

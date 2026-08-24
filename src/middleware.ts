@@ -5,6 +5,13 @@ const PUBLIC_HOST = "wafir.gleeze.com";
 const ADMIN_HOST = "admin.wafir.gleeze.com";
 const OWNER_HOST = "facility.wafir.gleeze.com";
 
+/** صفحات بوابة المالك العامة (بلا حراسة): الدخول + تسجيل منشأة جديدة */
+const OWNER_PUBLIC_PATHS = new Set(["/owner/login", "/owner/register"]);
+
+function isOwnerPublicPath(pathname: string): boolean {
+  return OWNER_PUBLIC_PATHS.has(pathname);
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const host = request.headers.get("host") ?? "";
@@ -67,8 +74,8 @@ export function middleware(request: NextRequest) {
       url.pathname = `/owner${pathname}`;
       return NextResponse.rewrite(url);
     }
-    // Protect owner routes (except login)
-    if (pathname !== "/owner/login") {
+    // Protect owner routes (except public pages: login + register)
+    if (!isOwnerPublicPath(pathname)) {
       const token = request.cookies.get("wafir_owner_token")?.value;
       if (!token) {
         url.pathname = "/owner/login";
@@ -105,7 +112,7 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(url);
     }
   }
-  if (pathname.startsWith("/owner") && pathname !== "/owner/login") {
+  if (pathname.startsWith("/owner") && !isOwnerPublicPath(pathname)) {
     const token = request.cookies.get("wafir_owner_token")?.value;
     if (!token) {
       url.pathname = "/owner/login";

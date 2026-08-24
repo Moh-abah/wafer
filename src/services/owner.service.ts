@@ -11,6 +11,7 @@ import { ownerApiClient } from "./owner-api-client";
 import type {
   TokenOut,
   Facility,
+  FacilityType,
   OwnerFacilityUpdate,
   Product,
   ProductCreate,
@@ -21,7 +22,41 @@ import type {
   MessageOut,
 } from "@/types/api.generated";
 
+/** ─── تسجيل مالك منشأة جديدة (POST /owner/register — عام بلا توكن) ─── */
+
+export interface OwnerRegisterInput {
+  full_name: string;
+  email: string;
+  phone: string;
+  password: string;
+  password_confirm: string;
+  facility_name: string;
+  facility_type: FacilityType;
+  region_id: number;
+  description?: string | null;
+  address?: string | null;
+  phone_facility?: string | null;
+  working_hours?: string | null;
+  image_url?: string | null;
+}
+
+export interface OwnerRegisterResult {
+  detail: string;
+  status_code: number;
+  user_id: number;
+  facility_id: number;
+  status: string;
+}
+
 export const ownerService = {
+  /**
+   * تسجيل حساب مالك + منشأته الجديدة.
+   * استجابة 201: {detail, user_id, facility_id, status: "بانتظار موافقة المشرف"}
+   * الأخطاء: 409 تكرار بريد/جوال (detail نصي عربي) — 422 تحقق (detail.errors
+   * مصفوفة بـ loc لكل حقل) — 404 منطقة غير موجودة.
+   */
+  ownerRegister: (data: OwnerRegisterInput) =>
+    ownerApiClient.post<OwnerRegisterResult>("/owner/register", data),
   /**
    * BLOCKER: This endpoint does NOT exist in the OpenAPI spec.
    * POST /api/v1/owner/login → TokenOut
