@@ -17,6 +17,7 @@ const QUICK_LINKS = [
   { label: "تسجيل العضوية", href: "/register" },
   { label: "حسابي", href: "/account" },
   { label: "تسجيل الدخول", href: "/login" },
+  { label: "سياسة الخصوصية", href: "/privacy" },
 ] as const;
 
 export function Footer() {

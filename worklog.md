@@ -1388,3 +1388,150 @@ Stage Summary:
 7. **Advanced UI**: Virtual scrolling for large tables, data export improvements
 8. **Dynamic discounts**: Use card.discount_rate from API instead of hardcoded 30%
 9. **Real QR codes**: Replace decorative SVG with actual QR code library
+
+---
+Task ID: 0
+Agent: Main Orchestrator (Z.ai Code)
+Task: نقل مشروع وفر المرفوع (wafir.rar) إلى بيئة العمل والتحقق من تشغيله
+
+Work Log:
+- فك ضغط upload/wafir.rar إلى /tmp/wafir-extract عبر unrar
+- قراءة الملفات المحمية قبل أي تعديل: theme-provider, ThemeToggle, usePrefersReducedMotion, مواضع صفحات الدخول, sanitizeNext في OwnerAuthGuard, عملاء API الثلاثة
+- إيقاف خادم dev القديم وحذف ملفات القالب (src, public, .next, prisma, db)
+- نسخ كامل مشروع وفر: src/ public/ .env next.config.ts tsconfig.json tailwind.config.ts components.json eslint.config.mjs postcss.config.mjs openapi.json DEPLOYMENT.md tadelat.md worklog.md (سجل المشروع الأصلي مدموج هنا)
+- دمج package.json: أساس وفر + dev script مع tee dev.log + sharp (devDep لتوليد الأيقونات) + typecheck script
+- إصلاح 3 إصدارات غير موجودة في المستودع المحلي استناداً إلى package-lock المرفق: react-toggle ^1.1.9, aspect-ratio ^1.1.7, avatar ^1.1.10
+- bun install ثم تشغيل bun run dev على المنفذ 3000
+- التحقق: GET / → 200 | /api/regions → 200 (الـ rewrite للباك اند الحي يعمل) | /owner/login → 200 | /admin/login → 200 | /facilities → 200
+- تثبيت خطوط Cairo في ~/.local/share/fonts + fc-cache ليعمل sharp/librsvg مع نصوص عربية
+- اختبار sharp: تحويل SVG بنص عربي (و بخط Cairo) إلى PNG بنجاح
+
+Stage Summary:
+- المشروع يعمل 100% على localhost:3000 مع الباك إند الحي api.wafir.gleeze.com
+- ملاحظة مهمة للتالين: api-client وcustomer-api-client يستخدمان API_BASE="/api" (same-origin عبر rewrite) — مثالي لاعتراض SW — بينما owner-api-client يستخدم العنوان المباشر https://api.wafir.gleeze.com/api/v1 (CORS مفعّل)
+- بيئة التشغيل تمنع bun run build — سيتم التحقق عبر lint + typecheck + فحص متصفح فعلي
+- إعدادات صفحة المالك settings تحتوي ميزات وهمية يجب تنظيفها في المهمة 3
+
+---
+Task ID: 1-a
+Agent: Main Orchestrator (Z.ai Code)
+Task: توليد أيقونات PWA للتطبيقين (عميل + مالك) + iOS splash
+
+Work Log:
+- إنشاء scripts/generate-icons.ts (sharp + librsvg + خط Cairo المثبت في fontconfig)
+- تصميم أيقونة العميل: تاغ ذهبي مبتسم + «وفر» (و ذهبية متدرجة + فر بيضاء) على #005B82 بزوايا دائرية rx=104
+- اكتشاف خلل عبر فحص VLM + فحص بكسلي: «فر» البيضاء كانت غير مرئية على خلفية maskable البيضاء → أصبحت بلون المحيط #005B82 في النسخة القابلة للقناع
+- إزاحة أفقية 13px في كلمة وفر → تصحيح بإحداثيات نصية دقيقة (تحقق بكسلي: مركز المحتوى 253-257/512)
+- apple-touch-icon 180 مربع كامل (iOS يقص الزوايا بنفسه)
+- أيقونة المالك: حلقة ذهبية + تاغ + و فقط (بدون فر) على تدرج سماوي→محيط→عميق — مميزة بصرياً عن العميل
+- maskable بحشوة أمان 80% (translate 51.2 + scale 0.8)
+- 6 شاشات انطلاق iOS للعميل: 640x1136, 750x1334, 1242x2208, 1170x2532, 1284x2778, 2048x2732
+- فحص VLM نهائي: كل الأيقونات سليمة + التطبيقان قابلان للتمييز جنباً إلى جنب (مربع بدون إطار + كلمة كاملة ≠ دائرة بحلقة + حرف واحد)
+
+Stage Summary:
+- public/icons/: icon-192/512, maskable-192/512, owner-icon-192/512, owner-maskable-192/512, apple-touch-icon.png (180)
+- public/icons/splash/: 6 ملفات splash بالهوية
+- درس مهم: التحقق البكسلي (bounding box) أدق من تقديرات VLM للتمركز — VLM أعطى إشارات متناقضة والبكسل حسم
+
+---
+Task ID: 1-b
+Agent: Main Orchestrator (Z.ai Code)
+Task: الـ Manifest الديناميكي حسب الـ Host + الميتا الديناميكية
+
+Work Log:
+- حذف src/app/manifest.ts الثابت وإنشاء src/app/manifest.webmanifest/route.ts يقرأ Host (مع دعم ?app=owner|customer للفرض)
+- العميل: name «وفر — بطاقة الخصومات» short_name «وفر» start_url / scope / theme #005B82 + أيقونات العميل + shortcuts [الرئيسية، المتاجر، حسابي] + description تسويقية سطران + categories + prefer_related_applications:false + screenshots (مسارات public/screenshots ستُلتقط لاحقاً)
+- المالك: name «وفر — بوابة المنشآت» short_name «وفر مالك» start_url /owner/login scope /owner/ theme #003B55 + أيقونات المالك
+- مشترك: standalone + portrait + lang ar + dir rtl + Content-Type application/manifest+json + Cache-Control no-cache
+- تحديث layout.tsx الجذر: manifest + appleWebApp (capable/status-bar-style/title) + icons.apple + viewport themeColor #005B82 + viewportFit cover + meta apple-mobile-web-app-capable صراحة
+- إنشاء src/app/owner/layout.tsx (Server pass-through) لميتا المالك على /owner/login — دون تحريك صفحة الدخول (أصل محمي)
+- فصل (owner)/owner/layout.tsx إلى Server (ميتا المالك) + OwnerPortalShell.tsx (عميل — الواجهة والحراسة كما هي)
+- إضافة 6 روابط apple-touch-startup-image في (public)/layout.tsx (يرفعها React 19 إلى head) — للتطبيق العميل فقط
+- تحديث matcher الـ middleware لاستثناء: sw.js | icons/ | screenshots/ | .well-known/ | offline | privacy — حتى تُخدم على كل النطاقات (خصوصاً facility.wafir.gleeze.com الذي يعيد كتابة كل المسارات إلى /owner)
+- إضافة owner-apple-touch-icon.png (مربع كامل) لـ iOS المالك + إعادة توليد الأيقونات
+
+Stage Summary:
+- فحوص ناجحة فعلياً: / → manifest العميل + theme-color #005B82 + apple-touch العميل | /owner/login → manifest?app=owner + #003B55 + أيقونة المالك | Host: facility.wafir.gleeze.com → manifest المالك تلقائياً | Content-Type صحيح
+- mobile-web-app-capable + apple-mobile-web-app-capable + status-bar-style + title كلها تعمل للبوابتين
+
+---
+Task ID: 2 + 3
+Agent: Main Orchestrator (Z.ai Code)
+Task: Service Worker بكل الاستراتيجيات + صفحة offline + إدارة التحديثات + زر التثبيت + تجهيزات المتاجر
+
+Work Log:
+- src/lib/pwa/sw-source.ts: مصدر SW كامل (StaleWhileRevalidate لكتالوج /api/* مع بقاء آخر نسخة أوفلاين للأبد + revalidation خلفية بـ debounce دقيقة + NetworkOnly لكل العمليات الكاتبة وauth/me/admin/owner وأي طلب يحمل Authorization + CacheFirst للصور بحد 50 + NetworkFirst للتنقلات مع سقوط لـ /offline + CacheFirst للأصول في الإنتاج وNetworkFirst في التطوير + تخزين حمولات RSC للتنقل الأوفلاين)
+- قرار هندسي موثق: SW يدوي عبر route handler بدل serwist — لأن Next 16 يستخدم Turbopack افتراضياً في dev (تجاهل تكامل serwist/webpack) والبيئة تمنع build محلي؛ السلوك المطلوب مطبق بالكامل وقابل للاختبار في dev
+- رسائل الأوفلاين العربية عبر استجابة 503 {detail} من الـ SW نفسه — بلا أي تعديل على عملاء API الثلاثة المحميين: «يتطلب هذا الإجراء اتصالاً بالإنترنت» و«تتطلب بوابة المنشآت اتصالاً بالإنترنت» لطلبات owner
+- src/app/sw.js/route.ts: يخدم /sw.js مع حقن NODE_ENV ورقم الإصدار + ترويسات Service-Worker-Allowed وno-cache
+- ServiceWorkerRegistrar: تسجيل + شريحة «يتوفر تحديث لتطبيق وفر» بزر «تحديث الآن» (SKIP_WAITING + reload واحد) + فحص دوري كل ساعة + فحص عند عودة الاتصال + إبطال استعلامات RQ على مرحلتين عند عودة الاتصال (فوراً + بعد 1.5ث لالتقاط النسخة المحدثة من SWR)
+- pwa.store + usePwaInstall (useSyncExternalStore لقراءة رفض التثبيت من localStorage بلا setState في effect) + PWAInstallButton (أندرويد: beforeinstallprompt / iOS: حوار إرشاد «شارك ← إضافة إلى الشاشة الرئيسية») + إخفاء دائم بعد الرفض لكل بوابة
+- مواضع زر التثبيت: العميل = حسابي (زائر + مسجل) + بطاقة موبايل بالرئيسية (InstallPromoCard md:hidden) | المالك = فوق نموذج الدخول + الإعدادات
+- صفحة /offline بالهوية (logo-glow + login-ocean-bg + زر إعادة محاولة + العودة للرئيسية) — تُخزن مسبقاً عند تثبيت العامل
+- OfflineBanner: نُقل إلى Providers (كل البوابات بدلاً من public فقط) + رسالة المالك «تتطلب بوابة المنشآت اتصالاً بالإنترنت» حسب المسار + safe-area — مع بقاء usePrefersReducedMotion كما هو
+- إعدادات المالك أعيدت كتابتها: صفر ميزات وهمية — زر تثبيت + مظهر (حقيقي) + تواصل حقيقي (هاتف/واتساب/بريد) + إصدار من APP_VERSION + خروج
+- public/.well-known/assetlinks.json = [] (قالب فارغ للمشرف) ويُخدم بنجاح 200
+- صفحة /privacy عربية بالهوية: البيانات المجموعة (اسم/بريد/جوال/رقم عضوية) + الهدف + عدم المشاركة + الحذف عبر التواصل + رابط في الفوتر
+
+Stage Summary:
+- lint: 0 أخطاء (4 تحذيرات كلها مسبقة في ملفات محمية) | typecheck: ناجح
+- كل المسارات ترجع 200: / /owner/login /offline /privacy /.well-known/assetlinks.json
+- ملاحظة: PRECACHE يشمل /privacy و/offline وخطوط Cairo والأيقونات — Promise.allSettled حتى لا يفشل تثبيت العامل بسبب أصل مفقود
+
+---
+Task ID: 4
+Agent: Main Orchestrator (Z.ai Code)
+Task: التحقق الإلزامي الكامل على localhost (lint + أوفلاين + الوضعان + Lighthouse + لقطات)
+
+Work Log:
+- lint: 0 أخطاء (4 تحذيرات مسبقة في ملفات محمية) | typecheck (tsc --noEmit): ناجح
+- Lighthouse PWA v9.6.8 (آخر إصدار بفئة PWA): **العميل 100/100 + المالك 100/100** — صفر فحوص فاشلة (نتائج في /tmp/lh-pwa9.json وlh-pwa-owner.json)
+- تدفق التحديث مُثبت فعلياً: تغيير SW → بانر «يتوفر تحديث لتطبيق وفر» → زر «تحديث الآن» → SKIP_WAITING → إعادة تحكم وإعادة تحميل واحدة
+- إصلاحان جوهريان اكتُشفا بالاختبار الفعلي: (1) سباق clone في handleNavigation كان يُفرغ كاش التنقلات — استنساخ فوري قبل الإرجاع (2) /api/_regions لم يكن يُخزَّن في الزيارة الأولى (يُطلب قبل تفعيل العامل) → precache في كاش البيانات + تثبيت المنطقة المختارة في localStorage (skipHydration + rehydrate في (public) layout)
+- محاكاة الأوفلاين: قتل خادم dev أثبت أن بيانات الكاش تُخدم (regions 200 + facilities 200 من الكاش يدوياً) لكن إقلاع Next dev عبر Turbopack لا يرطِّب بدون مصافحة HMR مع الخادم الحي (قيد وضع التطوير فقط — الإنتاج بchunks ثابتة كاملة بلا HMR)
+- بنيت محاكاة أوفلاين داخل SW (أداة اختبار مؤقتة أزيلت بعد التحقق): ترفض كل fetch داخل العامل — اختبرت على صفحة مرطبة:
+  * دخول عميل أوفلاين → «يتطلب هذا الإجراء اتصالاً بالإنترنت» في الواجهة ✓
+  * دخول مالك أوفلاين (طلب مباشر عبر الأصل) → «تتطلب بوابة المنشآت اتصالاً بالإنترنت» ✓
+  * تنقل لصفحة غير مخزنة أوفلاين → صفحة /offline بالهوية «أنت غير متصل» ✓
+  * عودة الاتصال → حدث online → إبطال استعلامات على مرحلتين (طلبتان جديدتان فُعلياً) ✓
+- فحص أمان الكاشات وقت التشغيل بعد طلبات فعليّة موقّعة: صفر تخزين لـ auth/me/admin/owner/توكنات في كل الكاشات (shell=أصول فقط، data=كتالوج عام فقط، nav=صفحات HTML)
+- لقطات المتجر: 6 لقطات 1080×1920 بمحتوى حقيقي (customer-home/card/facility + owner-login/products/import) — موثقة بـ VLM
+- الوضعان: فاتح + داكن على الرئيسية ودخول العميل ودخول المالك — تباين سليم (تحذير VLM واحد عن زر رفض الكوكيز كان إنذاراً كاذباً عند التقريب: أبيض على كحلي AAA)
+- موبايل 360px: صفر overflow أفقي (docWidth=winWidth=360)
+- grep: صفر ألوان ثابتة في TSX (عدا metadata المطلوبة hex في manifest/themeColor وأصول SVG) | text-white فقط فوق خلفيات ملونة ثابتة | صفر console.log في كود التطبيق (فقط سكربت توليد الأيقونات) | صفر any و@ts-ignore (عدا chart.tsx المسبق من shadcn)
+
+Stage Summary:
+- كل بنود المهمة 4 ناجحة موثقة بالأدلة أعلاه عدا بندي «build» (ممنوع في هذه البيئة — عوض عنه lint+typecheck+فحص متصفح فعلي) و«محاكاة موبايل standalone» (Lighthouse تحقق من standalone عبر فحص installability ضمن 100/100)
+- قيد موثق: الإقلاع البارد الأوفلاين في وضع dev لا يرطِّب (Turbopack+HMR) — لا يؤثر على إنتاج Vercel
+
+---
+Task ID: 5-b
+Agent: documentation-writer
+Task: كتابة دليل_النشر_PWA.md ودليل_التغليف_المتاجر.md
+
+Work Log:
+- قراءة worklog.md كاملاً (مهام 0–4 الحديثة) + فحص الملفات المرجعية: next.config.ts (rewrite الباك اند)، .env (المتغيرات الأربعة الاختيارية)، src/middleware.ts (توجيه النطاقات الثلاثة)، src/app/manifest.webmanifest/route.ts (الـ manifest الديناميكي)، src/app/sw.js/route.ts، src/lib/pwa/version.ts (APP_VERSION 1.0.0)، public/.well-known/assetlinks.json ([] الفارغة)، DEPLOYMENT.md (مطابقة أسلوب التوثيق)
+- كتابة /home/z/my-project/دليل_النشر_PWA.md (302 سطراً): دليل المشرف غير التقني — نشر Vercel (حساب → Import → الإعدادات الافتراضية تكفي لأن الروابط مدمجة في next.config.ts → Deploy) + ربط النطاقات الثلاثة وسجلات DNS (CNAME cname.vercel-dns.com / A 76.76.21.21 مع جدول ومكان الإضافة عند المزود ومدة الانتشار) + HTTPS التلقائي + اختبار التثبيت (أندرويد كروم/iOS سفاري لكل تطبيق مع مواضع أزرار التثبيت الداخلية الموثقة) + آلية التحديث (رسالة «يتوفر تحديث لتطبيق وفر» + رفع APP_VERSION في src/lib/pwa/version.ts مقابل فورية تحديثات المحتوى SWR) + قيود iOS بصدق (لا beforeinstallprompt، كاش ~50MB، شاشات انطلاق ثابتة، Push يتطلب iOS 16.4+ ولا إشعارات حالياً) + جدول استكشاف أخطاء
+- كتابة /home/z/my-project/دليل_التغليف_المتاجر.md (465 سطراً) بأقسام أ–هـ: (أ) مفاهيم PWA/SW/PWABuilder/TWA/assetlinks + جدول مصطلحات (ب) خطوات التغليف مرقمة للتطبيقين مع جدول فحوصات PWABuilder الحمراء ومواضع إصلاحها في المشروع + القيم الدقيقة (sa.gleeze.wafir / sa.gleeze.wafir.owner مع تحذير وجوب الاختلاف) (ج) مفتاح التوقيع موسعاً: الخياران + أمر keytool كامل بتفسير كل باراميتر + صندوق تحذير فقدان المفتاح (3 نسخ) + أمر استخراج SHA-256 + الخطوات الست للربط مع مثال assetlinks.json كامل بعنصرين (نفس الملف يخدم النطاقين من نفس النشر) + إعادة التوليد بالتوقيع تلقائياً بلا apksigner (د) المتاجر: Google Play (AAB حصراً، وصفان تسويقيان جاهزان للنسخ مبنيان على وصفَي الـ manifest الفعليين، جدول اللقطات الستة بأسمائها، الاستبيان التسوقي العام، رابط /privacy، مدة المراجعة، ميزة TWA للتحديث الفوري) + Huawei (APK وليس AAB) + Apple بتقييم صادق (قاعدة 4.2، حل Capacitor، الاقتباس الحرفي بعدم تعطيل أندرويد، 99$/سنة + Mac/Xcode) (هـ) قائمة التحقق النهائية الخمسية بمربعات بالنص المطلوب
+- التحقق الآلي من توازن backticks وأسوار الكود في الملفين: متوازنة (302 سطراً: 158 backtick و24 سوراً | 465 سطراً: 260 backtick و38 سوراً)
+
+Stage Summary:
+- دليلان جاهزان للمشرف غير التقني بجذر المشروع: دليل_النشر_PWA.md (نشر + نطاقات + تثبيت + تحديث + قيود iOS + أعطال) ودليل_التغليف_المتاجر.md (PWABuilder + مفتاح التوقيع + assetlinks + Play/Huawei/Apple + قائمة تحقق)
+- كل معلومة تقنية مستمدة من سجل العمل أو ملفات المشروع الفعلية أو مواصفات المهمة — صفر اختراع؛ الأوصاف التسويقية للمتاجر مبنية على نصوص الـ manifest الحقيقية وميزات البوابات الموثقة
+- النقاط الوحيدة غير المستمدة من كود المشروع: أعراف عامة معروفة (25$ Play، 99$ آبل، مدد المراجعة، سلوك keytool على ويندوز) واردة نصاً في مواصفات المهمة
+
+---
+Task ID: 5 (a+b+c)
+Agent: Main Orchestrator (Z.ai Code) + documentation-writer subagent
+Task: التوثيق الكامل — تقرير العمل + دليل النشر + دليل التغليف + سجل التغييرات
+
+Work Log:
+- تقرير_PWA.md (كتبه المنسق): ملخص تنفيذي + جداول Added (24 بنداً)/Modified (14)/Deleted + القرارات الهندسية الموثقة (SW يدوي بدل serwist + رسائل الأوفلاين من الـ SW + تثبيت المنطقة) + نتائج بنود المهمة 4 الأربعة عشر بالأدلة + BLOCKERS الستة وحلولها + القيد الموثق (إقلاع dev البارد الأوفلايني لا يرطِّب — قيد Turbopack dev حصراً)
+- دليل_النشر_PWA.md (وكيل التوثيق، 301 سطراً): Vercel خطوة بخطوة + ربط الدومينات الثلاثة وسجلات DNS + HTTPS التلقائي + اختبار التثبيت أندرويد/iOS + آلية التحديث وترقيم الإصدار + قيود iOS الصادقة + استكشاف الأخطاء
+- دليل_التغليف_المتاجر.md (وكيل التوثيق، 464 سطراً): الأقسام أ-هـ كاملة — المفاهيم (PWA/SW/PWABuilder/TWA/assetlinks) + خطوات التغليف مرقمة للتطبيقين (بالفحوصات الحمراء ومواضع إصلاحها) + قسم مفتاح التوقيع الموسع (أمرا keytool جاهزان + مثال assetlinks.json نهائي بعنصرين + أداة فحص Google) + خطوات Play/Huawei/Apple (بتقييم الصادق لقاعدة 4.2 وخطة Capacitor + «لا تدع آبل تعطل إطلاق أندرويد») + قائمة التحقق الخمسية
+- سجل_التغييرات.md: سجل زمني مرتب بالمراحل وملفاتها
+- جولة تحقق نهائية: lint 0 أخطاء + typecheck ناجح + SW نشط + الرئيسية تعمل ببياناتها + رابط الخصوصية بالفوتر + كل أصول الـ manifest الستة عشر موجودة
+
+Stage Summary:
+- المشروع مكتمل: تطبيقان PWA جاهزان للتغليف (Lighthouse PWA 100/100 لكليهما) + 4 ملفات توثيق عربية شاملة
+- كل ما يخص الخارج (نشر/تغليف/متاجر/مفاتيح) موثق نصياً للمشرف حصراً كما تتطلب القاعدة المطلقة

@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { OwnerPortalShell } from "./OwnerPortalShell";
 
 /**
- * Layout بوابة المالك (الصفحات المحمية /owner/*)
+ * Layout بوابة المالك لمسار الدخول /owner/login
  * ------------------------------------------------
- * مكوّن Server يحمل ميتا «تطبيق المالك» (يتجاوز ميتا العميل في الجذر)
- * ويفوّض الواجهة والحراسة إلى OwnerPortalShell (مكوّن عميل).
+ * مكوّن Server يمرر الأبناء كما هو (بلا أي واجهة) — وظيفته الوحيدة:
+ * تجاوز ميتا تطبيق العميل بميتا «تطبيق المالك» حتى لو كان الأصل
+ * localhost (يُقرأ الـ manifest الصحيح عند تثبيت التطبيق من صفحة الدخول).
  */
 export const metadata: Metadata = {
   manifest: "/manifest.webmanifest?app=owner",
@@ -30,8 +30,8 @@ export const viewport: Viewport = {
   themeColor: "#003B55",
 };
 
-export default function OwnerLayout({
+export default function OwnerEntryLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  return <OwnerPortalShell>{children}</OwnerPortalShell>;
+  return children;
 }

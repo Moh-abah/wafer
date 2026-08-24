@@ -33,6 +33,7 @@ import { ErrorState } from "@/components/shared/ErrorState";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { WafirPillBadge } from "@/components/shared/WafirPillBadge";
 import { WafirLogo } from "@/components/shared/WafirLogo";
+import { InstallPromoCard } from "@/components/pwa/PWAInstallButton";
 import { useFacilities } from "@/hooks/useFacilities";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { TYPE_LABEL, TYPE_ICON } from "@/lib/constants";
@@ -595,6 +596,7 @@ export default function HomePage() {
   return (
     <div className="w-full">
       <MemberCardSection />
+      <InstallPromoCard portal="customer" />
       <div className="mx-auto max-w-7xl space-y-12 px-4 py-10 sm:space-y-14 sm:px-6 sm:py-14">
         <CategoriesAndOffersSection />
         <WhyWafirSection />

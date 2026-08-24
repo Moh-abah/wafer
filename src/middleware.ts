@@ -118,5 +118,12 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|api|robots.txt|sitemap.xml|manifest.webmanifest|icon.svg|logo.svg|logo-mark.svg|fonts).*)"],
+  /**
+   * مسارات مستثناة من المعالجة (تُخدم كما هي على كل النطاقات):
+   * - أصول PWA: manifest الديناميكي، Service Worker، الأيقونات، اللقطات، assetlinks
+   * - صفحات مشتركة: /offline و/privacy (تعمل على نطاقي العميل والمالك)
+   */
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|api|robots.txt|sitemap.xml|manifest.webmanifest|sw\\.js|icons/|screenshots/|\\.well-known/|offline|privacy|icon.svg|logo.svg|logo-mark.svg|fonts/).*)",
+  ],
 };

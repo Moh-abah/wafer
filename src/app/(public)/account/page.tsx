@@ -32,6 +32,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MemberCard } from "@/components/public/MemberCard";
 import { WafirLogo } from "@/components/shared/WafirLogo";
+import { PWAInstallButton } from "@/components/pwa/PWAInstallButton";
 import { useCustomerAuth, useCustomerLogout } from "@/hooks/useCustomerAuth";
 import { useMe, useInvalidateMe } from "@/hooks/useMe";
 import { customerAuthService } from "@/services/customer-auth.service";
@@ -84,6 +85,7 @@ function GuestAccount() {
               </Link>
             </Button>
           </div>
+          <PWAInstallButton portal="customer" variant="full" className="w-full" />
         </CardContent>
       </Card>
     </motion.div>
@@ -266,6 +268,9 @@ function AccountContent({ me }: { me: MeOut }) {
 
       {/* بطاقة العضوية — نفس تصميم MemberCard ببيانات حقيقية */}
       <MemberCard />
+
+      {/* تثبيت التطبيق — يظهر عند توفر إمكانية التثبيت فقط */}
+      <PWAInstallButton portal="customer" variant="full" />
 
       {/* بيانات الملف + التعديل */}
       <Card className="rounded-2xl border-border/60 shadow-soft">

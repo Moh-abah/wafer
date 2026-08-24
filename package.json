@@ -6,7 +6,9 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "icons": "bun run scripts/generate-icons.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",

@@ -1,16 +1,28 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { WifiOff, RefreshCw, Wifi } from "lucide-react";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 type BannerState = "online" | "offline" | "restored";
 
+/**
+ * شريحة حالة الاتصال — عنصر مشترك واحد يُعرض عبر Providers في كل
+ * البوابات (العميل + المالك + الأدمن).
+ * رسالة بوابة المالك تختلف: «تتطلب بوابة المنشآت اتصالاً بالإنترنت».
+ */
 export function OfflineBanner() {
+  const pathname = usePathname();
   const [bannerState, setBannerState] = useState<BannerState>("online");
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-const prefersReduced = usePrefersReducedMotion();
+  const prefersReduced = usePrefersReducedMotion();
+
+  const isOwnerPortal =
+    pathname === null
+      ? false
+      : pathname.startsWith("/owner") || pathname.startsWith("/admin");
 
   const goOnline = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -54,9 +66,14 @@ const prefersReduced = usePrefersReducedMotion();
           {...slideVariants}
           transition={{ duration: 0.25, ease: "easeOut" }}
           className="fixed inset-x-0 top-0 z-50 flex items-center justify-center gap-2 bg-accent px-4 py-2.5 text-sm font-medium text-white shadow-lg"
+          style={{ paddingTop: "max(0.625rem, env(safe-area-inset-top))" }}
         >
           <WifiOff className="h-4 w-4 shrink-0" />
-          <span>لا يوجد اتصال بالإنترنت</span>
+          <span>
+            {isOwnerPortal
+              ? "تتطلب بوابة المنشآت اتصالاً بالإنترنت"
+              : "لا يوجد اتصال بالإنترنت"}
+          </span>
           <button
             type="button"
             onClick={() => window.location.reload()}
@@ -73,6 +90,7 @@ const prefersReduced = usePrefersReducedMotion();
           {...slideVariants}
           transition={{ duration: 0.25, ease: "easeOut" }}
           className="fixed inset-x-0 top-0 z-50 flex items-center justify-center gap-2 bg-success px-4 py-2.5 text-sm font-medium text-white shadow-lg"
+          style={{ paddingTop: "max(0.625rem, env(safe-area-inset-top))" }}
         >
           <Wifi className="h-4 w-4 shrink-0" />
           <span>تم استعادة الاتصال</span>

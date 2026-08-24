@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Providers } from "./providers";
@@ -43,12 +43,38 @@ const geistMono = localFont({
   display: "swap",
 });
 
+/**
+ * الميتا الافتراضية هنا لتطبيق «العميل» (wafir.gleeze.com وlocalhost).
+ * بوابة المالك تتجاوزها عبر metadata في:
+ *   - src/app/owner/layout.tsx            (صفحة /owner/login)
+ *   - src/app/(owner)/owner/layout.tsx    (صفحات البوابة المحمية)
+ */
 export const metadata: Metadata = {
   title: "وفر | بطاقات خصم 30% على المطاعم والمرافق",
   description:
     "منصة وفر — كتالوج بطاقات الخصم بنسبة 30% على جميع المطاعم والمقاهي والمرافق العامة. اختر منطقتك واستمتع بالعروض.",
   keywords: ["وفر", "Wafir", "بطاقات خصم", "خصم 30%", "مطاعم", "مقاهي", "عروض"],
   authors: [{ name: "وفر" }],
+  manifest: "/manifest.webmanifest",
+  applicationName: "وفر",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "وفر",
+  },
+  icons: {
+    apple: "/icons/apple-touch-icon.png",
+  },
+  other: {
+    "apple-mobile-web-app-capable": "yes",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#005B82",
 };
 
 export default function RootLayout({

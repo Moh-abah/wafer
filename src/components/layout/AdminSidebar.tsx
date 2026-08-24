@@ -14,6 +14,7 @@ import {
   User,
   ChevronLeft,
   ChevronRight,
+  Hourglass,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -30,9 +31,10 @@ import { useAdminFacilities } from "@/hooks/useAdminFacilities";
 import { useAdminCards } from "@/hooks/useAdminCards";
 import { useAdminUsers } from "@/hooks/useAdminUsers";
 import { useAdminAuditLogs } from "@/hooks/useAdminAuditLogs";
+import { useAdminPendingFacilities } from "@/hooks/useAdminPendingFacilities";
 import { WafirLogo } from "@/components/shared/WafirLogo";
 
-type NavKey = "facilities" | "cards" | "users" | "audit-logs";
+type NavKey = "facilities" | "cards" | "users" | "audit-logs" | "pending";
 
 interface NavItem {
   href: string;
@@ -46,6 +48,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/regions", label: "المناطق", icon: Map },
   { href: "/admin/cards", label: "البطاقات", icon: CreditCard, badgeKey: "cards" },
   { href: "/admin/facilities", label: "المنشآت", icon: Store, badgeKey: "facilities" },
+  { href: "/admin/facilities/pending", label: "طلبات المنشآت المعلّقة", icon: Hourglass, badgeKey: "pending" },
   { href: "/admin/users", label: "العملاء", icon: Users, badgeKey: "users" },
   { href: "/admin/audit-logs", label: "سجل العمليات", icon: ScrollText, badgeKey: "audit-logs" },
   { href: "/admin/settings", label: "الإعدادات", icon: Settings },
@@ -56,17 +59,28 @@ function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+/** أطول بادئة مطابقة تفوز — حتى لا تتفعّل «المنشآت» داخل صفحة طلباتها المعلّقة */
+function getActiveHref(pathname: string): string | null {
+  const matches = NAV_ITEMS.filter((item) => isActive(pathname, item.href)).map(
+    (item) => item.href
+  );
+  if (matches.length === 0) return null;
+  return matches.sort((a, b) => b.length - a.length)[0];
+}
+
 function NavBadgeCounts() {
   const { data: facilitiesData } = useAdminFacilities(1, 1);
   const { data: cardsData } = useAdminCards();
   const { data: usersData } = useAdminUsers(undefined, 1, 1);
   const { data: auditData } = useAdminAuditLogs(1, 1);
+  const { data: pendingData } = useAdminPendingFacilities(1, 1);
 
   const counts: Record<NavKey, number> = {
     facilities: facilitiesData?.total ?? 0,
     cards: cardsData?.total ?? 0,
     users: usersData?.total ?? 0,
     "audit-logs": auditData?.total ?? 0,
+    pending: pendingData?.total ?? 0,
   };
 
   return counts;
@@ -75,10 +89,11 @@ function NavBadgeCounts() {
 function NavLinks({ onNavigate, collapsed }: { onNavigate?: () => void; collapsed: boolean }) {
   const pathname = usePathname();
   const counts = NavBadgeCounts();
+  const activeHref = getActiveHref(pathname);
   return (
     <nav className="flex flex-col gap-1 px-3 py-2">
       {NAV_ITEMS.map((item) => {
-        const active = isActive(pathname, item.href);
+        const active = item.href === activeHref;
         const Icon = item.icon;
         const count = item.badgeKey ? counts[item.badgeKey] : 0;
         return (

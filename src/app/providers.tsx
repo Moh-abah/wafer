@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
+import { OfflineBanner } from "@/components/shared/OfflineBanner";
+import { ServiceWorkerRegistrar } from "@/components/pwa/ServiceWorkerRegistrar";
 
 /* ------------------------------------------------------------------ */
 /*  NProgress-style Top Loading Bar (CSS keyframes only, no state)      */
@@ -45,6 +47,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <RouteLoadingBar />
+        <OfflineBanner />
+        <ServiceWorkerRegistrar />
         {children}
         <Toaster />
       </QueryClientProvider>

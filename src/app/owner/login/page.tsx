@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { WafirLogo } from "@/components/shared/WafirLogo";
+import { PWAInstallButton } from "@/components/pwa/PWAInstallButton";
 import { useOwnerAuth, useOwnerLogin } from "@/hooks/useOwnerAuth";
 import { useToast } from "@/hooks/use-toast";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
@@ -120,6 +121,9 @@ function OwnerLoginForm() {
       </div>
 
       <div className="relative z-10 w-full max-w-sm space-y-6">
+        {/* زر تثبيت تطبيق المالك — فوق نموذج الدخول */}
+        <PWAInstallButton portal="owner" variant="full" />
+
         {/* Logo with glow — floating on desktop */}
         <div className={cn(
           "flex flex-col items-center gap-3 text-center",
