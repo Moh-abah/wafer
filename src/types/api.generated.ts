@@ -102,6 +102,12 @@ export interface Facility {
   phone: string | null;
   working_hours: string | null;
   image_url: string | null;
+  /** حالة موافقة المشرف (عندما تُعيدها نقاط النهاية المحدّثة) — undefined = تعامَل كمُوافق عليها */
+  is_approved?: boolean;
+  /** سبب الرفض إن رُفضت المنشأة — null عندما لا يوجد رفض */
+  rejection_reason?: string | null;
+  /** تاريخ الموافقة — null قبل الموافقة */
+  approved_at?: string | null;
   created_at: string;
 }
 

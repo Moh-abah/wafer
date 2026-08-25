@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Store, Eye, EyeOff, Package, Pencil, ChevronLeft, CheckCircle2, Plus, Upload, BarChart3, Percent } from "lucide-react";
+import { Store, Eye, EyeOff, Package, Pencil, ChevronLeft, CheckCircle2, Plus, Upload, BarChart3, Percent, Hourglass, AlertTriangle } from "lucide-react";
 import { useQueries } from "@tanstack/react-query";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -305,8 +305,13 @@ export default function OwnerFacilitiesContent() {
   const prefersReduced = useReducedMotion();
 
   // If only 1 facility, redirect to its products page
+  // (المعلّقة/المرفوضة لا يُعاد توجيهها — تُعرض في القائمة بحالتها)
   useEffect(() => {
-    if (facilities && facilities.length === 1) {
+    if (
+      facilities &&
+      facilities.length === 1 &&
+      facilities[0].is_approved !== false
+    ) {
       router.replace(`/owner/facilities/${facilities[0].id}/products`);
     }
   }, [facilities, router]);
@@ -384,8 +389,11 @@ export default function OwnerFacilitiesContent() {
     );
   }
 
-  // ─── Redirecting (single facility) ───
-  if (facilities.length === 1) {
+  // ─── Redirecting (single approved facility) ───
+  if (
+    facilities.length === 1 &&
+    facilities[0].is_approved !== false
+  ) {
     return (
       <div className="flex items-center justify-center py-20">
         <Skeleton className="h-6 w-48" />
@@ -512,6 +520,9 @@ function FacilityCard({ facility }: { facility: Facility }) {
   const { data: productData } = useOwnerProducts(facility.id, { page: 1, page_size: 1 });
   const productCount = productData?.total ?? 0;
 
+  /* منشأة معلّقة = بانتظار موافقة المشرف (is_approved === false صراحةً) */
+  const isPending = facility.is_approved === false;
+
   return (
     <Card className="rounded-2xl transition-shadow hover:shadow-md">
       <CardContent className="flex flex-col gap-4 p-5">
@@ -522,9 +533,17 @@ function FacilityCard({ facility }: { facility: Facility }) {
             </div>
             <div>
               <h3 className="font-semibold leading-tight">{facility.name}</h3>
-              <Badge variant="secondary" className="mt-1 text-xs">
-                {FACILITY_TYPE_LABELS[facility.type] || facility.type}
-              </Badge>
+              <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                <Badge variant="secondary" className="text-xs">
+                  {FACILITY_TYPE_LABELS[facility.type] || facility.type}
+                </Badge>
+                {isPending && (
+                  <Badge className="gap-1 bg-accent text-accent-foreground hover:bg-accent">
+                    <Hourglass className="h-3 w-3" aria-hidden="true" />
+                    بانتظار الموافقة
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
           <div className={cn(
@@ -537,6 +556,23 @@ function FacilityCard({ facility }: { facility: Facility }) {
             <span>{facility.is_visible ? "ظاهرة" : "مخفية"}</span>
           </div>
         </div>
+
+        {/* سبب الرفض — بطاقة تنبيه حمراء عند توفره */}
+        {facility.rejection_reason && (
+          <div
+            className="flex items-start gap-3 rounded-xl bg-destructive/10 p-4"
+            role="alert"
+          >
+            <AlertTriangle
+              className="mt-0.5 h-5 w-5 shrink-0 text-destructive"
+              aria-hidden="true"
+            />
+            <p className="text-sm leading-relaxed text-destructive">
+              رُفض طلبك: {facility.rejection_reason} — عدّل بياناتك وتواصل مع
+              الإدارة
+            </p>
+          </div>
+        )}
 
         {facility.description && (
           <p className="line-clamp-2 text-sm text-muted-foreground">
@@ -568,7 +604,3 @@ function FacilityCard({ facility }: { facility: Facility }) {
     </Card>
   );
 }
-
-// "use client";
-
-// import { useEffect, useMemo, useState } from "react";

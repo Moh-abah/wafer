@@ -24,7 +24,12 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-auto w-full bg-card" role="contentinfo">
+    /* hide-in-standalone: يُخفي الفوتر كلياً عند تشغيل التطبيق مثبّتاً
+       (display-mode: standalone) — تجربة Native App */
+    <footer
+      className="hide-in-standalone mt-auto w-full bg-card"
+      role="contentinfo"
+    >
       {/* الخط العلوي المتدرج — هوية المحيط */}
       <div className="gradient-ocean h-1 w-full" aria-hidden="true" />
 
