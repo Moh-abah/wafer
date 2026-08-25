@@ -1,1 +1,26 @@
-[]
+[
+ {
+  "relation": [
+   "delegate_permission/common.handle_all_urls"
+  ],
+  "target": {
+   "namespace": "android_app",
+   "package_name": "sa.gleeze.wafir",
+   "sha256_cert_fingerprints": [
+    "B1:82:9C:F8:D4:A8:00:99:A3:6B:80:E8:5D:99:DC:8B:96:E2:BD:C2:7C:4D:F4:A6:2C:AE:66:84:45:B8:C4:0D"
+   ]
+  }
+ },
+ {
+  "relation": [
+   "delegate_permission/common.handle_all_urls"
+  ],
+  "target": {
+   "namespace": "android_app",
+   "package_name": "sa.gleeze.wafir.owner",
+   "sha256_cert_fingerprints": [
+    "B1:82:9C:F8:D4:A8:00:99:A3:6B:80:E8:5D:99:DC:8B:96:E2:BD:C2:7C:4D:F4:A6:2C:AE:66:84:45:B8:C4:0D"
+   ]
+  }
+ }
+]
