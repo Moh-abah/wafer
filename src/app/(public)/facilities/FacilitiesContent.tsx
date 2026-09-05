@@ -3,16 +3,18 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
-import { Search, UtensilsCrossed, Coffee, Landmark, MapPin, SearchX, ArrowUpDown, Clock, Eye, X, Building2, Grid3X3, MapPinned, Package } from "lucide-react";
+import { Search, UtensilsCrossed, Coffee, Landmark, MapPin, SearchX, ArrowUpDown, Clock, Eye, X, Building2, Grid3X3, MapPinned, Package, Heart } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DiscountBadge } from "@/components/shared/DiscountBadge";
 import { ImageWithSkeleton } from "@/components/shared/ImageWithSkeleton";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { EmptyState } from "@/components/shared/EmptyState";
-import { useFacilities } from "@/hooks/useFacilities";
+import { useFacilitiesSearch } from "@/hooks/useFacilities";
+import { useFavoriteStatus, useToggleFavorite } from "@/hooks/useFavorites";
 import { useRegions } from "@/hooks/useRegions";
 import { useRegionStore } from "@/store/region.store";
+import { useCustomerAuthStore } from "@/store/customerAuth.store";
 import { TYPE_LABEL, TYPE_ICON } from "@/lib/constants";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { FacilityType, Facility } from "@/types/api.generated";
@@ -43,6 +45,41 @@ const TYPE_BADGE_CLASS: Record<FacilityType, string> = {
 /* ------------------------------------------------------------------ */
 /*  FacilityCard (upgraded)                                            */
 /* ------------------------------------------------------------------ */
+function FacilityCardFavorite({ facilityId }: { facilityId: number }) {
+  const token = useCustomerAuthStore((s) => s.accessToken);
+  const { data: favStatus } = useFavoriteStatus(facilityId);
+  const toggleMut = useToggleFavorite();
+  const isFav = favStatus?.is_favorited ?? false;
+
+  // Only render when logged in (guests can't favorite)
+  if (!token) return null;
+
+  return (
+    <button
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleMut.mutate(facilityId);
+      }}
+      disabled={toggleMut.isPending}
+      aria-label={isFav ? "إزالة من المفضلة" : "إضافة للمفضلة"}
+      aria-pressed={isFav}
+      className={cn(
+        "flex h-9 w-9 items-center justify-center rounded-full backdrop-blur-sm transition-all",
+        "border border-white/10 disabled:opacity-50",
+        isFav
+          ? "bg-primary text-primary-foreground"
+          : "bg-card/80 text-muted-foreground hover:text-primary hover:bg-card"
+      )}
+    >
+      <Heart
+        className={cn("h-4 w-4 transition-transform", isFav && "scale-110")}
+        fill={isFav ? "currentColor" : "none"}
+      />
+    </button>
+  );
+}
+
 function FacilityCard({ facility, productCount }: { facility: Facility; productCount?: number }) {
   const Icon = TYPE_ICON[facility.type];
   return (
@@ -50,16 +87,18 @@ function FacilityCard({ facility, productCount }: { facility: Facility; productC
       <motion.div
         whileHover={{ y: -4 }}
         transition={{ duration: 0.2, ease: "easeOut" }}
-        className="rounded-2xl border bg-card overflow-hidden transition-shadow hover:shadow-lg"
+        className="group rounded-2xl border bg-card overflow-hidden transition-shadow hover:shadow-lg hover:border-primary/30"
       >
-        <div className="relative h-44 sm:h-52 bg-muted">
+        <div className="relative h-44 sm:h-52 bg-muted overflow-hidden">
           {facility.image_url ? (
-            <ImageWithSkeleton src={facility.image_url} alt={facility.name} fill className="h-full w-full" />
+            <ImageWithSkeleton src={facility.image_url} alt={facility.name} fill className="h-full w-full transition-transform duration-300 group-hover:scale-105" />
           ) : (
-            <div className="flex h-full items-center justify-center">
+            <div className="flex h-full items-center justify-center transition-transform duration-300 group-hover:scale-105">
               <Icon className="h-14 w-14 text-muted-foreground/30" />
             </div>
           )}
+          {/* Gradient overlay for badge readability */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 to-transparent" />
           <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5">
             <DiscountBadge percentage={30} />
             {typeof productCount === "number" && productCount > 0 && (
@@ -69,10 +108,14 @@ function FacilityCard({ facility, productCount }: { facility: Facility; productC
               </span>
             )}
           </div>
+          {/* Favorite heart button (top-right) */}
+          <div className="absolute top-3 right-3 z-10">
+            <FacilityCardFavorite facilityId={facility.id} />
+          </div>
         </div>
         <div className="p-4 sm:p-5">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="text-base sm:text-lg font-bold text-foreground truncate">{facility.name}</h3>
+            <h3 className="text-base sm:text-lg font-bold text-foreground truncate transition-colors group-hover:text-primary">{facility.name}</h3>
             <span className={cn("shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-medium", TYPE_BADGE_CLASS[facility.type])}>
               {TYPE_LABEL[facility.type]}
             </span>
@@ -97,7 +140,7 @@ function FacilityCard({ facility, productCount }: { facility: Facility; productC
               </>
             )}
           </div>
-          <span className="inline-flex items-center gap-1 text-xs text-secondary font-medium">
+          <span className="inline-flex items-center gap-1 text-xs text-secondary font-medium transition-transform group-hover:-translate-x-0.5">
             <Eye className="h-3 w-3" />
             عرض المنتجات
           </span>
@@ -243,7 +286,6 @@ function StatsBar({ facilities }: { facilities: Facility[] }) {
 /*  FacilitiesGrid                                                     */
 /* ------------------------------------------------------------------ */
 function FacilitiesGrid() {
-  const { data, isLoading, error, refetch } = useFacilities();
   const selectedRegionId = useRegionStore((s) => s.selectedRegionId);
   const [typeFilter, setTypeFilter] = useState<FacilityType | "all">("all");
   const [searchInput, setSearchInput] = useState("");
@@ -251,7 +293,15 @@ function FacilitiesGrid() {
   const [sortKey, setSortKey] = useState<SortKey>("default");
   const debouncedSearch = useDebounce(searchInput, 300);
   const prefersReduced = usePrefersReducedMotion();
-    const { recentSearches, saveSearch, removeSearch, clearAll } = useRecentSearches();
+  const { recentSearches, saveSearch, removeSearch, clearAll } = useRecentSearches();
+
+  // Server-side search + filter (bypasses cache when search/type is provided).
+  // Falls back to the cached full list when neither is active.
+  const hasActiveFilter = !!debouncedSearch.trim() || typeFilter !== "all";
+  const { data, isLoading, error, refetch } = useFacilitiesSearch(
+    debouncedSearch,
+    typeFilter
+  );
 
   const handleSearchSubmit = useCallback(() => {
     if (searchInput.trim()) {
@@ -264,21 +314,18 @@ function FacilitiesGrid() {
     [data]
   );
 
+  // Client-side sort only (search/filter is now server-side)
   const filtered = useMemo(() => {
     let result = allFacilities;
-    if (typeFilter !== "all") result = result.filter((f) => f.type === typeFilter);
-    if (debouncedSearch.trim()) result = result.filter((f) => f.name.includes(debouncedSearch.trim()));
-
     if (sortKey === "newest") {
       result = [...result].sort((a, b) => b.id - a.id);
     } else if (sortKey === "alpha") {
       result = [...result].sort((a, b) => a.name.localeCompare(b.name, "ar"));
     }
-
     return result;
-  }, [allFacilities, typeFilter, debouncedSearch, sortKey]);
+  }, [allFacilities, sortKey]);
 
-  /* Product counts per facility */
+  /* Product counts per facility (only fetch for first 9 visible cards) */
   const [productCounts, setProductCounts] = useState<Record<number, number>>({});
   useEffect(() => {
     if (filtered.length === 0) return;
@@ -287,7 +334,7 @@ function FacilitiesGrid() {
       await Promise.all(
         filtered.slice(0, 9).map(async (f) => {
           try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/facilities/${f.id}/products`);
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ""}/api/facilities/${f.id}/products`);
             if (res.ok) {
               const data = await res.json();
               counts[f.id] = Array.isArray(data) ? data.length : 0;
@@ -323,7 +370,7 @@ function FacilitiesGrid() {
     return <EmptyState icon={Landmark} title="اختر منطقة لعرض المنشآت" description="حدد منطقتك من القائمة أعلى الصفحة" />;
   }
 
-  if (allFacilities.length === 0) {
+  if (allFacilities.length === 0 && !hasActiveFilter) {
     return <EmptyState icon={Landmark} title="لا توجد منشآت في هذه المنطقة" description="ترقّب المزيد من المنشآت قريبًا" />;
   }
 
@@ -346,6 +393,15 @@ function FacilitiesGrid() {
             onKeyDown={(e) => { if (e.key === "Enter") handleSearchSubmit(); }}
             className="h-11 min-h-[44px] pr-11 rounded-full text-base"
           />
+          {searchInput && (
+            <button
+              onClick={() => setSearchInput("")}
+              aria-label="مسح البحث"
+              className="absolute left-3 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
           <AnimatePresence>
             {searchInput === "" && isSearchFocused && recentSearches.length > 0 && (
               <motion.div
@@ -437,6 +493,14 @@ function FacilitiesGrid() {
       {/* Results counter */}
       <p className="mb-4 text-sm text-muted-foreground">
         {filtered.length} منشأة
+        {hasActiveFilter && (
+          <button
+            onClick={() => { setSearchInput(""); setTypeFilter("all"); }}
+            className="mr-2 text-xs text-secondary hover:underline"
+          >
+            مسح الفلاتر
+          </button>
+        )}
       </p>
 
       {/* Grid */}

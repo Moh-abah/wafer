@@ -3,6 +3,7 @@
 import { create } from "zustand";
 
 const COOKIE_NAME = "wafir_admin_token";
+const REFRESH_COOKIE_NAME = "wafir_admin_refresh";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
 function readCookie(name: string): string | null {
@@ -28,26 +29,39 @@ function eraseCookie(name: string) {
 
 interface AuthState {
   accessToken: string | null;
+  refreshToken: string | null;
   /** True until we've checked the cookie on the client. */
   hydrated: boolean;
-  setAuth: (token: string) => void;
+  setAuth: (token: string, refreshToken?: string | null) => void;
+  setTokens: (access: string, refresh: string) => void;
   clearAuth: () => void;
   hydrate: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   accessToken: null,
+  refreshToken: null,
   hydrated: false,
-  setAuth: (token) => {
+  setAuth: (token, refreshToken = null) => {
     writeCookie(COOKIE_NAME, token, COOKIE_MAX_AGE);
-    set({ accessToken: token, hydrated: true });
+    if (refreshToken) {
+      writeCookie(REFRESH_COOKIE_NAME, refreshToken, COOKIE_MAX_AGE);
+    }
+    set({ accessToken: token, refreshToken, hydrated: true });
+  },
+  setTokens: (access, refresh) => {
+    writeCookie(COOKIE_NAME, access, COOKIE_MAX_AGE);
+    writeCookie(REFRESH_COOKIE_NAME, refresh, COOKIE_MAX_AGE);
+    set({ accessToken: access, refreshToken: refresh });
   },
   clearAuth: () => {
     eraseCookie(COOKIE_NAME);
-    set({ accessToken: null });
+    eraseCookie(REFRESH_COOKIE_NAME);
+    set({ accessToken: null, refreshToken: null });
   },
   hydrate: () => {
     const token = readCookie(COOKIE_NAME);
-    set({ accessToken: token, hydrated: true });
+    const refresh = readCookie(REFRESH_COOKIE_NAME);
+    set({ accessToken: token, refreshToken: refresh, hydrated: true });
   },
 }));

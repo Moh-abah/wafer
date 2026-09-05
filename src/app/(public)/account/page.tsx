@@ -17,6 +17,14 @@ import {
   UserPlus,
   LogIn,
   ShieldCheck,
+  Heart,
+  Clock,
+  UtensilsCrossed,
+  Coffee,
+  Landmark,
+  Star,
+  Trash2,
+  Smartphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,7 +43,12 @@ import { WafirLogo } from "@/components/shared/WafirLogo";
 import { PWAInstallButton } from "@/components/pwa/PWAInstallButton";
 import { useCustomerAuth, useCustomerLogout } from "@/hooks/useCustomerAuth";
 import { useMe, useInvalidateMe } from "@/hooks/useMe";
+import { useMyFavorites, useToggleFavorite } from "@/hooks/useFavorites";
+import { useMyReviews, useDeleteReview } from "@/hooks/useReviews";
+import { StarRating } from "@/components/shared/StarRating";
 import { customerAuthService } from "@/services/customer-auth.service";
+import { customerApiClient } from "@/services/customer-api-client";
+import type { MessageOut } from "@/types/api.generated";
 import { useToast } from "@/hooks/use-toast";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import type { MeOut } from "@/types/api.generated";
@@ -233,6 +246,229 @@ function ProfileEditForm({ me }: { me: MeOut }) {
 /* ------------------------------------------------------------------ */
 /*  محتوى الحساب — بطاقة العضوية + البيانات + التعديل + الخروج         */
 /* ------------------------------------------------------------------ */
+/* ------------------------------------------------------------------ */
+/*  المفضلة — قائمة المنشآت التي أضافها العميل للمفضلة                  */
+/* ------------------------------------------------------------------ */
+function MyFavoritesSection() {
+  const { data: favorites, isLoading } = useMyFavorites();
+  const toggleMut = useToggleFavorite();
+
+  return (
+    <Card className="rounded-2xl border-border/60 shadow-soft">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <Heart className="h-5 w-5 text-primary" aria-hidden="true" />
+          مفضلاتي
+        </CardTitle>
+        <CardDescription>
+          المنشآت التي حفظتها للوصول السريع
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-16 w-full rounded-xl" />
+            ))}
+          </div>
+        ) : !favorites || favorites.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 py-8 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+              <Heart className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-foreground">لا توجد منشآت في مفضلاتك</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                تصفّح المنشآت واضغط على القلب لإضافتها هنا
+              </p>
+            </div>
+            <Button asChild size="sm" variant="outline" className="mt-2 min-h-[44px]">
+              <Link href="/facilities">
+                تصفّح المنشآت
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {favorites.map((facility) => (
+              <div
+                key={facility.id}
+                className="group flex items-center gap-3 rounded-xl border border-border/50 bg-muted/20 p-3 transition-colors hover:bg-muted/40"
+              >
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/15 to-secondary/15">
+                  {facility.type === "restaurant" ? (
+                    <UtensilsCrossed className="h-5 w-5 text-primary" aria-hidden="true" />
+                  ) : facility.type === "cafe" ? (
+                    <Coffee className="h-5 w-5 text-secondary" aria-hidden="true" />
+                  ) : (
+                    <Landmark className="h-5 w-5 text-accent" aria-hidden="true" />
+                  )}
+                </div>
+                <Link
+                  href={`/facilities/${facility.id}`}
+                  className="min-w-0 flex-1"
+                >
+                  <p className="truncate text-sm font-bold text-foreground group-hover:text-primary">
+                    {facility.name}
+                  </p>
+                  {facility.working_hours && (
+                    <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3 shrink-0" aria-hidden="true" />
+                      {facility.working_hours}
+                    </p>
+                  )}
+                </Link>
+                <button
+                  onClick={() => toggleMut.mutate(facility.id)}
+                  disabled={toggleMut.isPending}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
+                  aria-label={`إزالة ${facility.name} من المفضلة`}
+                >
+                  <Heart className="h-4 w-4 fill-primary text-primary" aria-hidden="true" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  مراجعاتي — قائمة المراجعات التي كتبها العميل عبر كل المنشآت       */
+/* ------------------------------------------------------------------ */
+function MyReviewsSection() {
+  const { data: reviews, isLoading } = useMyReviews();
+  const deleteMut = useDeleteReview();
+  const { toast } = useToast();
+
+  return (
+    <Card className="rounded-2xl border-border/60 shadow-soft">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <Star className="h-5 w-5 text-accent" fill="currentColor" strokeWidth={0} aria-hidden="true" />
+          مراجعاتي
+        </CardTitle>
+        <CardDescription>
+          المراجعات التي كتبتها على المنشآت
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-20 w-full rounded-xl" />
+            ))}
+          </div>
+        ) : !reviews || reviews.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 py-8 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+              <Star className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-foreground">لم تكتب أي مراجعة بعد</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                زر منشأة واترك تقييمك لمشاركة تجربتك مع الآخرين
+              </p>
+            </div>
+            <Button asChild size="sm" variant="outline" className="mt-2 min-h-[44px]">
+              <Link href="/facilities">
+                تصفّح المنشآت
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {reviews.map((review) => (
+              <div
+                key={review.id}
+                className="group flex items-start gap-3 rounded-xl border border-border/50 bg-muted/20 p-3 transition-colors hover:bg-muted/40"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-accent/15 to-secondary/15">
+                  <Star className="h-5 w-5 text-accent" fill="currentColor" strokeWidth={0} aria-hidden="true" />
+                </div>
+                <Link
+                  href={`/facilities/${review.facility_id}`}
+                  className="min-w-0 flex-1"
+                >
+                  <p className="truncate text-sm font-bold text-foreground group-hover:text-primary">
+                    {review.facility_name}
+                  </p>
+                  <div className="mt-1 flex items-center gap-2">
+                    <StarRating value={review.rating} size={12} />
+                    <span className="text-xs text-muted-foreground">
+                      {review.helpful_count > 0 && `${review.helpful_count} وجدوها مفيدة`}
+                    </span>
+                  </div>
+                  {review.comment && (
+                    <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
+                      {review.comment}
+                    </p>
+                  )}
+                  {!review.is_published && (
+                    <span className="mt-1 inline-block rounded-full bg-destructive/15 px-2 py-0.5 text-[10px] font-bold text-destructive">
+                      مخفية
+                    </span>
+                  )}
+                </Link>
+                <button
+                  onClick={() =>
+                    deleteMut.mutate(review.facility_id, {
+                      onSuccess: () => toast({ title: "تم حذف المراجعة" }),
+                    })
+                  }
+                  disabled={deleteMut.isPending}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
+                  aria-label={`حذف مراجعة ${review.facility_name}`}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  تسجيل الخروج من جميع الأجهزة                                       */
+/* ------------------------------------------------------------------ */
+function LogoutAllDevicesButton() {
+  const { toast } = useToast();
+  const mutation = useMutation({
+    mutationFn: () => customerApiClient.post<MessageOut>("/me/logout-all"),
+    onSuccess: (data) => {
+      toast({ title: data.detail });
+    },
+    onError: (e: Error) => {
+      toast({
+        title: "تعذّر تسجيل الخروج",
+        description: e.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  return (
+    <Button
+      variant="outline"
+      onClick={() => mutation.mutate()}
+      disabled={mutation.isPending}
+      className="min-h-[44px] gap-2 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+    >
+      {mutation.isPending ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <Smartphone className="h-4 w-4" aria-hidden="true" />
+      )}
+      خروج من كل الأجهزة
+    </Button>
+  );
+}
+
 function AccountContent({ me }: { me: MeOut }) {
   const logout = useCustomerLogout();
   const prefersReduced = usePrefersReducedMotion();
@@ -264,6 +500,7 @@ function AccountContent({ me }: { me: MeOut }) {
           <LogOut className="h-4 w-4" aria-hidden="true" />
           تسجيل الخروج
         </Button>
+        <LogoutAllDevicesButton />
       </div>
 
       {/* بطاقة العضوية — نفس تصميم MemberCard ببيانات حقيقية */}
@@ -338,6 +575,12 @@ function AccountContent({ me }: { me: MeOut }) {
           </div>
         </CardContent>
       </Card>
+
+      {/* المفضلة — قائمة المنشآت المحفوظة */}
+      <MyFavoritesSection />
+
+      {/* مراجعاتي — قائمة المراجعات التي كتبها العميل */}
+      <MyReviewsSection />
     </motion.div>
   );
 }

@@ -1,5 +1,6 @@
 import { useAuthStore } from "@/store/auth.store";
 import { useOwnerAuthStore } from "@/store/ownerAuth.store";
+import { attemptRefresh, type Portal } from "@/lib/refresh";
 
 // const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.wafir.gleeze.com/api/v1";
 const API_BASE = "/api";
@@ -16,13 +17,26 @@ export class ApiError extends Error {
 }
 
 type TokenCookieName = "wafir_admin_token" | "wafir_owner_token";
+type RefreshCookieName = "wafir_admin_refresh" | "wafir_owner_refresh";
 
 /**
  * مسارات الدخول: أخطاء 401/403 تُعرض فيها رسالة الخادم (detail)
  * مباشرة — ولا تُعدّ «انتهت الجلسة» ولا تمسح التوكنات.
  */
 function isAuthEndpoint(url: string): boolean {
-  return url.startsWith("/admin/login");
+  return (
+    url.startsWith("/admin/login") ||
+    url.startsWith("/owner/login") ||
+    url.startsWith("/admin/refresh") ||
+    url.startsWith("/owner/refresh")
+  );
+}
+
+/** Endpoints that use the admin token (vs owner token) — used to pick the
+ * correct refresh portal on 401. */
+function urlPortal(url: string): Portal {
+  if (url.startsWith("/owner")) return "owner";
+  return "admin"; // admin + shared endpoints default to admin refresh
 }
 
 function getToken(): string | null {
@@ -36,6 +50,29 @@ function getToken(): string | null {
     if (match) return decodeURIComponent(match.split("=")[1]);
   }
   return null;
+}
+
+/** Attempt a single refresh for the portal that the failing URL belongs to.
+ * Returns the new access token on success, or null on failure (caller should
+ * then clear auth + throw the original 401). */
+async function tryRefreshForUrl(url: string): Promise<string | null> {
+  const portal = urlPortal(url);
+  if (portal === "admin") {
+    const ok = await attemptRefresh(
+      "admin",
+      () => useAuthStore.getState().refreshToken,
+      (a, r) => useAuthStore.getState().setTokens(a, r),
+      () => useAuthStore.getState().clearAuth(),
+    );
+    return ok ? useAuthStore.getState().accessToken : null;
+  }
+  const ok = await attemptRefresh(
+    "owner",
+    () => useOwnerAuthStore.getState().refreshToken,
+    (a, r) => useOwnerAuthStore.getState().setTokens(a, r),
+    () => useOwnerAuthStore.getState().clearAuth(),
+  );
+  return ok ? useOwnerAuthStore.getState().accessToken : null;
 }
 
 async function fetchWithAuth<T>(
@@ -60,13 +97,16 @@ async function fetchWithAuth<T>(
 
   const fullUrl = url.startsWith("http") ? url : `${API_BASE}${url}`;
 
-  let response: Response;
-  try {
-    response = await fetch(fullUrl, {
+  const doFetch = (): Promise<Response> =>
+    fetch(fullUrl, {
       method,
       headers,
       body: body instanceof FormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
     });
+
+  let response: Response;
+  try {
+    response = await doFetch();
   } catch (networkErr) {
     throw new ApiError(
       "تعذّر الاتصال بالخادم. تأكد من اتصالك بالإنترنت.",
@@ -77,12 +117,34 @@ async function fetchWithAuth<T>(
 
   const authEndpoint = isAuthEndpoint(url);
 
+  // ─── Auto-refresh on 401 (non-auth endpoints only) ────────────────────
+  // Try to rotate tokens once; if refresh succeeds, retry the original
+  // request with the new access token. If refresh fails, clear auth and
+  // throw the session-expired error.
   if (response.status === 401 && !authEndpoint) {
-    if (typeof window !== "undefined") {
-      useAuthStore.getState().clearAuth();
-      useOwnerAuthStore.getState().clearAuth();
+    const newToken = await tryRefreshForUrl(url);
+    if (newToken) {
+      headers["Authorization"] = `Bearer ${newToken}`;
+      try {
+        response = await doFetch();
+      } catch (networkErr) {
+        throw new ApiError(
+          "تعذّر الاتصال بالخادم. تأكد من اتصالك بالإنترنت.",
+          0,
+          networkErr
+        );
+      }
+    } else {
+      if (typeof window !== "undefined") {
+        useAuthStore.getState().clearAuth();
+        useOwnerAuthStore.getState().clearAuth();
+      }
+      throw new ApiError("انتهت الجلسة. يرجى تسجيل الدخول مجددًا.", 401, null);
     }
-    throw new ApiError("انتهت الجلسة. يرجى تسجيل الدخول مجددًا.", 401, null);
+  }
+
+  if (response.status === 401 && authEndpoint) {
+    // Login/refresh endpoint returned 401 — surface server's Arabic message.
   }
 
   if (response.status === 403 && !authEndpoint) {

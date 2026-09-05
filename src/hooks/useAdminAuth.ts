@@ -29,7 +29,7 @@ export function useAdminLogin() {
     mutationFn: (data: { identifier: string; password: string }) =>
       authService.adminLogin(data),
     onSuccess: (data) => {
-      setAuth(data.access_token);
+      setAuth(data.access_token, data.refresh_token);
       toast({ title: "تم تسجيل الدخول", description: "مرحبًا بك في لوحة التحكم" });
       router.push("/admin");
     },

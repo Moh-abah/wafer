@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   Hourglass,
   Store,
@@ -13,6 +14,7 @@ import {
   CalendarClock,
   PartyPopper,
   Loader2,
+  ExternalLink,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -107,7 +109,15 @@ function PendingFacilityCard({
           </span>
           <div className="min-w-0">
             <h3 className="truncate text-base font-bold leading-snug text-foreground">
-              {facility.name}
+              <Link
+                href={`/facilities/${facility.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 transition-colors hover:text-primary"
+              >
+                {facility.name}
+                <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              </Link>
             </h3>
             <div className="mt-1 flex items-center gap-1.5">
               <TypeIcon

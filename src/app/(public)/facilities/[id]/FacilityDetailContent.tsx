@@ -41,10 +41,16 @@ import { ErrorState } from "@/components/shared/ErrorState";
 import { useFacilityProducts, useAllFacilityProducts } from "@/hooks/useFacilityProducts";
 import { useProductCategories } from "@/hooks/useProductCategories";
 import { useFacilities } from "@/hooks/useFacilities";
+import { useFavoriteCount, useFavoriteStatus, useToggleFavorite } from "@/hooks/useFavorites";
+import { useFacilityReviewStats } from "@/hooks/useReviews";
 import { TYPE_LABEL, SCHEMA_ORG_TYPE } from "@/lib/constants";
 import type { FacilityType, Product } from "@/types/api.generated";
 import { cn } from "@/lib/utils";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { ReviewsSection } from "@/components/public/ReviewsSection";
+import { SimilarFacilities } from "@/components/public/SimilarFacilities";
+import { StarRating } from "@/components/shared/StarRating";
+import { trackFacilityView } from "@/hooks/useRecentlyViewed";
 
 const PRICE_FMT = new Intl.NumberFormat("ar-SA", {
   style: "currency",
@@ -300,7 +306,6 @@ export default function FacilityDetailContent() {
   const params = useParams<{ id: string }>();
   const [reportOpen, setReportOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const { toast } = useToast();
   const facilityId = Number(params.id);
@@ -317,10 +322,29 @@ const prefersReduced = usePrefersReducedMotion();
   });
   const { data: allProducts } = useAllFacilityProducts(facilityId);
 
+  // ─── Real favorites (persisted server-side) ──────────────────────────
+  const { data: favStatus } = useFavoriteStatus(facilityId);
+  const toggleFavMut = useToggleFavorite();
+  const { data: favCountData } = useFavoriteCount(facilityId);
+  const isFavorite = favStatus?.is_favorited ?? false;
+  const favCount = favCountData?.count ?? 0;
+
+  // ─── Reviews (rating stats for the hero + full section below) ────────
+  const { data: reviewStats } = useFacilityReviewStats(facilityId);
+  const avgRating = reviewStats?.average ?? 0;
+  const reviewCount = reviewStats?.total ?? 0;
+
   const facility = useMemo(
     () => (facilities ?? []).find((f) => f.id === facilityId) ?? null,
     [facilities, facilityId]
   );
+
+  // Track the facility view for the "recently viewed" section on the home page.
+  useEffect(() => {
+    if (facility) {
+      trackFacilityView(facility);
+    }
+  }, [facility]);
 
   /* ─── Parallax scroll effect (CSS variable, no re-renders) ── */
   useEffect(() => {
@@ -367,6 +391,24 @@ const prefersReduced = usePrefersReducedMotion();
     const text = encodeURIComponent(`تعرف على ${facility?.name ?? "هذه المنشأة"} على وفر`);
     window.open(`https://wa.me/?text=${text}%20${url}`, "_blank");
   }, [facility?.name, toast]);
+
+  /* ─── Native Web Share API (mobile-first) ─────────── */
+  const handleNativeShare = useCallback(() => {
+    if (typeof window === "undefined" || !facility) return;
+    const shareData: ShareData = {
+      title: `وفر — ${facility.name}`,
+      text: `تعرف على ${facility.name} على وفر — خصم 30%`,
+      url: window.location.href,
+    };
+    if (typeof navigator !== "undefined" && navigator.share) {
+      navigator.share(shareData).catch(() => {
+        // User cancelled — no action needed
+      });
+    } else {
+      // Fallback: copy link + toast
+      handleCopyLink();
+    }
+  }, [facility, handleCopyLink]);
 
   /* ─── Reading progress ────────────────────────────── */
   useEffect(() => {
@@ -516,9 +558,18 @@ const prefersReduced = usePrefersReducedMotion();
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h1 className="text-2xl font-black text-white sm:text-3xl">{facility.name}</h1>
-                <span className="mt-2 inline-block rounded-full bg-secondary/90 px-3 py-1 text-xs font-medium text-white">
-                  {TYPE_LABEL[facility.type]}
-                </span>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <span className="inline-block rounded-full bg-secondary/90 px-3 py-1 text-xs font-medium text-white">
+                    {TYPE_LABEL[facility.type]}
+                  </span>
+                  {reviewCount > 0 && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                      <StarRating value={avgRating} size={12} />
+                      <span className="tabular-nums" dir="ltr">{avgRating.toFixed(1)}</span>
+                      <span className="text-white/70">({reviewCount})</span>
+                    </span>
+                  )}
+                </div>
               </div>
               <DiscountBadge percentage={30} />
             </div>
@@ -552,13 +603,21 @@ const prefersReduced = usePrefersReducedMotion();
           <div className="mr-auto flex items-center gap-2">
             <button
               onClick={() => {
-                setIsFavorite((prev) => {
-                  const next = !prev;
-                  toast({ title: next ? "تمت الإضافة للمفضلة" : "تمت الإزالة من المفضلة" });
-                  return next;
+                toggleFavMut.mutate(facilityId, {
+                  onSuccess: (data) => {
+                    toast({ title: data.detail });
+                  },
+                  onError: (e: Error) => {
+                    toast({
+                      title: "تعذّر تحديث المفضلة",
+                      description: e.message,
+                      variant: "destructive",
+                    });
+                  },
                 });
               }}
-              className="inline-flex items-center gap-2 rounded-full bg-muted px-3.5 py-2 text-sm min-h-[44px] transition-colors hover:bg-muted/80"
+              disabled={toggleFavMut.isPending}
+              className="inline-flex items-center gap-2 rounded-full bg-muted px-3.5 py-2 text-sm min-h-[44px] transition-colors hover:bg-muted/80 disabled:opacity-50"
               aria-label={isFavorite ? "إزالة من المفضلة" : "إضافة للمفضلة"}
             >
               <motion.span
@@ -570,6 +629,11 @@ const prefersReduced = usePrefersReducedMotion();
                 <Heart className={cn("h-4 w-4 shrink-0 transition-colors", isFavorite ? "fill-primary text-primary" : "text-muted-foreground hover:text-primary")} />
               </motion.span>
               {isFavorite ? "مفضلة" : "تفضيل"}
+              {favCount > 0 && (
+                <span className="text-xs text-muted-foreground tabular-nums" dir="ltr">
+                  ({favCount})
+                </span>
+              )}
             </button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -584,6 +648,16 @@ const prefersReduced = usePrefersReducedMotion();
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
+                {/* Native Web Share API (mobile-first) */}
+                {typeof navigator !== "undefined" && typeof navigator.share === "function" && (
+                  <DropdownMenuItem
+                    className="min-h-[44px] gap-3 cursor-pointer"
+                    onClick={handleNativeShare}
+                  >
+                    <Share2 className="h-4 w-4 text-primary" />
+                    <span>مشاركة عبر الجهاز</span>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   className="min-h-[44px] gap-3 cursor-pointer"
                   onClick={handleCopyLink}
@@ -751,6 +825,14 @@ const prefersReduced = usePrefersReducedMotion();
           </Link>
         </div>
       </div>
+
+      {/* Reviews Section */}
+      <div className="mt-8">
+        <ReviewsSection facilityId={facilityId} />
+      </div>
+
+      {/* Similar Facilities */}
+      <SimilarFacilities facilityId={facilityId} />
 
       {/* Sticky Bottom Bar - Mobile */}
       <div className="fixed bottom-16 left-0 right-0 z-40 border-t bg-card/95 backdrop-blur-md px-4 py-3 md:hidden">

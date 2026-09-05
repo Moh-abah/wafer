@@ -8,6 +8,9 @@ import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { ScrollToTop } from "@/components/shared/ScrollToTop";
 import { CookieConsent } from "@/components/shared/CookieConsent";
 import { useRegionStore } from "@/store/region.store";
+import { useProactiveTokenRefresh } from "@/hooks/useProactiveTokenRefresh";
+import { OnboardingTour } from "@/components/public/OnboardingTour";
+import { ReplayTourButton } from "@/components/public/ReplayTourButton";
 
 /**
  * شاشات انطلاق iOS لتطبيق العميل — يرفعها React 19 إلى <head> تلقائياً.
@@ -72,6 +75,10 @@ export default function PublicLayout({
     void useRegionStore.persist.rehydrate();
   }, []);
 
+  // Proactively refresh the customer access token ~60s before it expires,
+  // so the user never hits a 401 mid-action.
+  useProactiveTokenRefresh();
+
   return (
     <div className="flex min-h-[100dvh] flex-col bg-background text-foreground">
       <IosSplashLinks />
@@ -82,6 +89,8 @@ export default function PublicLayout({
       <MobileBottomNav />
       <ScrollToTop />
       <CookieConsent />
+      <OnboardingTour />
+      <ReplayTourButton />
     </div>
   );
 }

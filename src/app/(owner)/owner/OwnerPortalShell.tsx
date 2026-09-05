@@ -9,6 +9,7 @@ import {
   OwnerMobileSidebar,
 } from "@/components/owner/OwnerSidebar";
 import { useUiStore } from "@/store/ui.store";
+import { useProactiveTokenRefresh } from "@/hooks/useProactiveTokenRefresh";
 
 /**
  * هيكل بوابة المالك (عميل) — الواجهة والحراسة.
@@ -21,6 +22,9 @@ export function OwnerPortalShell({
   children: React.ReactNode;
 }) {
   const toggleSidebar = useUiStore((s) => s.toggleOwnerSidebar);
+
+  // Proactively refresh the owner access token ~60s before it expires.
+  useProactiveTokenRefresh();
 
   return (
     <OwnerAuthGuard>

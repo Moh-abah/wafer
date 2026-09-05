@@ -1,4 +1,5 @@
 import { useCustomerAuthStore } from "@/store/customerAuth.store";
+import { attemptRefresh } from "@/lib/refresh";
 
 const API_BASE = "/api";
 
@@ -18,7 +19,7 @@ export class CustomerApiError extends Error {
  * مباشرة (detail) — ولا تُعدّ «انتهت الجلسة» ولا تمسح التوكن.
  */
 function isAuthEndpoint(url: string): boolean {
-  return url.startsWith("/auth/login");
+  return url.startsWith("/auth/login") || url.startsWith("/auth/refresh");
 }
 
 function getCustomerToken(): string | null {
@@ -29,6 +30,16 @@ function getCustomerToken(): string | null {
     .split("; ")
     .find((c) => c.startsWith("wafir_customer_token="));
   return match ? decodeURIComponent(match.split("=")[1]) : null;
+}
+
+async function tryCustomerRefresh(): Promise<string | null> {
+  const ok = await attemptRefresh(
+    "customer",
+    () => useCustomerAuthStore.getState().refreshToken,
+    (a, r) => useCustomerAuthStore.getState().setTokens(a, r),
+    () => useCustomerAuthStore.getState().clearAuth(),
+  );
+  return ok ? useCustomerAuthStore.getState().accessToken : null;
 }
 
 async function fetchWithCustomerAuth<T>(
@@ -51,13 +62,16 @@ async function fetchWithCustomerAuth<T>(
 
   const fullUrl = url.startsWith("http") ? url : `${API_BASE}${url}`;
 
-  let response: Response;
-  try {
-    response = await fetch(fullUrl, {
+  const doFetch = (): Promise<Response> =>
+    fetch(fullUrl, {
       method,
       headers,
       body: body instanceof FormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
     });
+
+  let response: Response;
+  try {
+    response = await doFetch();
   } catch (networkErr) {
     throw new CustomerApiError(
       "تعذّر الاتصال بالخادم. تأكد من اتصالك بالإنترنت.",
@@ -68,11 +82,26 @@ async function fetchWithCustomerAuth<T>(
 
   const authEndpoint = isAuthEndpoint(url);
 
+  // ─── Auto-refresh on 401 (non-auth endpoints only) ────────────────────
   if (response.status === 401 && !authEndpoint) {
-    if (typeof window !== "undefined") {
-      useCustomerAuthStore.getState().clearAuth();
+    const newToken = await tryCustomerRefresh();
+    if (newToken) {
+      headers["Authorization"] = `Bearer ${newToken}`;
+      try {
+        response = await doFetch();
+      } catch (networkErr) {
+        throw new CustomerApiError(
+          "تعذّر الاتصال بالخادم. تأكد من اتصالك بالإنترنت.",
+          0,
+          networkErr
+        );
+      }
+    } else {
+      if (typeof window !== "undefined") {
+        useCustomerAuthStore.getState().clearAuth();
+      }
+      throw new CustomerApiError("انتهت الجلسة. يرجى تسجيل الدخول مجددًا.", 401, null);
     }
-    throw new CustomerApiError("انتهت الجلسة. يرجى تسجيل الدخول مجددًا.", 401, null);
   }
 
   if (response.status === 403 && !authEndpoint) {

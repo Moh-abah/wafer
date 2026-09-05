@@ -29,7 +29,7 @@ export function useCustomerLogin() {
     mutationFn: (data: { identifier: string; password: string }) =>
       customerAuthService.login(data),
     onSuccess: (data) => {
-      setAuth(data.access_token);
+      setAuth(data.access_token, data.refresh_token);
       toast({ title: "تم تسجيل الدخول", description: "مرحبًا بك في وفر" });
     },
     onError: (e: Error) =>

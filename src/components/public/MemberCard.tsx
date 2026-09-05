@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarDays, CreditCard, UserPlus } from "lucide-react";
+import { CalendarDays, CreditCard, ScanLine, UserPlus, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WafirLogo } from "@/components/shared/WafirLogo";
+import { MembershipQR } from "@/components/public/MembershipQR";
 import { useMe } from "@/hooks/useMe";
 import { DISCOUNT_RATE } from "@/lib/site-config";
 import { formatExpiry, formatMembershipNumber } from "@/lib/format";
@@ -50,7 +51,8 @@ interface MemberCardBodyProps {
   membership: MyMembershipCard;
 }
 
-/** بطاقة العضوية للمسجّل — الرقم والنوع والانتهاء من بيانات حقيقية فقط */
+/** بطاقة العضوية للمسجّل — الرقم والنوع والانتهاء من بيانات حقيقية فقط
+ *  + رمز QR حقيقي قابل للمسح للتحقق من العضوية عند نقطة البيع */
 function LoggedInMemberCard({ membership }: MemberCardBodyProps) {
   return (
     <div className="gradient-ocean relative overflow-hidden rounded-[20px] p-5 text-white shadow-soft-lg sm:p-7">
@@ -77,18 +79,30 @@ function LoggedInMemberCard({ membership }: MemberCardBodyProps) {
           </div>
         </div>
 
-        {/* العنوان + رقم العضوية الحقيقي */}
-        <div className="space-y-1.5 text-left">
-          <p className="flex items-center gap-1.5 text-sm font-bold text-white/90">
-            <CreditCard className="h-4 w-4" aria-hidden="true" />
-            بطاقة الخصومات الذكية
-          </p>
-          <p
-            className="text-xl font-black tracking-[0.12em] tabular-nums text-white sm:text-2xl"
-            dir="ltr"
-          >
-            {formatMembershipNumber(membership.membership_number)}
-          </p>
+        {/* العنوان + رقم العضوية الحقيقي + رمز QR */}
+        <div className="flex items-end justify-between gap-4">
+          <div className="min-w-0 flex-1 space-y-1.5 text-left">
+            <p className="flex items-center gap-1.5 text-sm font-bold text-white/90">
+              <CreditCard className="h-4 w-4 shrink-0" aria-hidden="true" />
+              بطاقة الخصومات الذكية
+            </p>
+            <p
+              className="text-xl font-black tracking-[0.12em] tabular-nums text-white sm:text-2xl"
+              dir="ltr"
+            >
+              {formatMembershipNumber(membership.membership_number)}
+            </p>
+            <p className="flex items-center gap-1 pt-1 text-[11px] font-medium text-white/55">
+              <ScanLine className="h-3 w-3" aria-hidden="true" />
+              امسح الرمز عند المنشأة للتحقق من العضوية
+            </p>
+          </div>
+          <MembershipQR
+            value={membership.membership_number}
+            size={88}
+            className="shrink-0"
+            title={`رمز التحقق لعضوية رقم ${membership.membership_number}`}
+          />
         </div>
 
         {/* النوع (يسار) + الانتهاء (يمين) */}
@@ -129,6 +143,10 @@ function VisitorMemberCard({ className }: { className?: string }) {
           <p className="text-sm font-medium text-white/80 sm:text-base">
             خصم {DISCOUNT_RATE}% في كل المنشآت المشتركة
           </p>
+          <div className="flex items-center gap-2 pt-1 text-xs font-medium text-white/55">
+            <QrCode className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>احصل على رمز تحقق QR قابل للمسح عند التسجيل</span>
+          </div>
         </div>
         <Button
           asChild
@@ -180,7 +198,8 @@ export interface MemberCardProps {
 /**
  * بطاقة العضوية الذكية — العنصر الرئيسي في الرئيسية وحسابي.
  * الزائر: دعوة تسجيل — المسجّل: الرقم الحقيقي 16 خانة مقسّم 4×4،
- * النوع، الانتهاء MM/YY، شارة الخصم، وشارة «منتهية» عند اللزوم.
+ * النوع، الانتهاء MM/YY، شارة الخصم، رمز QR قابل للمسح،
+ * وشارة «منتهية» عند اللزوم.
  */
 export function MemberCard({ membership, className }: MemberCardProps) {
   const me = useMe();

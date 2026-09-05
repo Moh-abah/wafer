@@ -1,6 +1,7 @@
 import { useOwnerAuthStore } from "@/store/ownerAuth.store";
+import { attemptRefresh } from "@/lib/refresh";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.wafir.gleeze.com/api/v1";
+const API_BASE = "/api";
 
 export class OwnerApiError extends Error {
   status: number;
@@ -28,7 +29,20 @@ function getOwnerToken(): string | null {
  * مباشرة — ولا تُعدّ «انتهت الجلسة» ولا تمسح التوكن.
  */
 function isAuthEndpoint(url: string): boolean {
-  return url.startsWith("/owner/login");
+  return (
+    url.startsWith("/owner/login") ||
+    url.startsWith("/owner/refresh")
+  );
+}
+
+async function tryOwnerRefresh(): Promise<string | null> {
+  const ok = await attemptRefresh(
+    "owner",
+    () => useOwnerAuthStore.getState().refreshToken,
+    (a, r) => useOwnerAuthStore.getState().setTokens(a, r),
+    () => useOwnerAuthStore.getState().clearAuth(),
+  );
+  return ok ? useOwnerAuthStore.getState().accessToken : null;
 }
 
 async function fetchWithOwnerAuth<T>(
@@ -53,13 +67,16 @@ async function fetchWithOwnerAuth<T>(
 
   const fullUrl = url.startsWith("http") ? url : `${API_BASE}${url}`;
 
-  let response: Response;
-  try {
-    response = await fetch(fullUrl, {
+  const doFetch = (): Promise<Response> =>
+    fetch(fullUrl, {
       method,
       headers,
       body: body instanceof FormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
     });
+
+  let response: Response;
+  try {
+    response = await doFetch();
   } catch (networkErr) {
     throw new OwnerApiError(
       "تعذّر الاتصال بالخادم. تأكد من اتصالك بالإنترنت.",
@@ -70,11 +87,26 @@ async function fetchWithOwnerAuth<T>(
 
   const authEndpoint = isAuthEndpoint(url);
 
+  // ─── Auto-refresh on 401 (non-auth endpoints only) ────────────────────
   if (response.status === 401 && !authEndpoint) {
-    if (typeof window !== "undefined") {
-      useOwnerAuthStore.getState().clearAuth();
+    const newToken = await tryOwnerRefresh();
+    if (newToken) {
+      headers["Authorization"] = `Bearer ${newToken}`;
+      try {
+        response = await doFetch();
+      } catch (networkErr) {
+        throw new OwnerApiError(
+          "تعذّر الاتصال بالخادم. تأكد من اتصالك بالإنترنت.",
+          0,
+          networkErr
+        );
+      }
+    } else {
+      if (typeof window !== "undefined") {
+        useOwnerAuthStore.getState().clearAuth();
+      }
+      throw new OwnerApiError("انتهت الجلسة. يرجى تسجيل الدخول مجددًا.", 401, null);
     }
-    throw new OwnerApiError("انتهت الجلسة. يرجى تسجيل الدخول مجددًا.", 401, null);
   }
 
   if (response.status === 403 && !authEndpoint) {

@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Hourglass,
+  Star,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/facilities", label: "المنشآت", icon: Store, badgeKey: "facilities" },
   { href: "/admin/facilities/pending", label: "طلبات المنشآت المعلّقة", icon: Hourglass, badgeKey: "pending" },
   { href: "/admin/users", label: "العملاء", icon: Users, badgeKey: "users" },
+  { href: "/admin/reviews", label: "المراجعات", icon: Star },
   { href: "/admin/audit-logs", label: "سجل العمليات", icon: ScrollText, badgeKey: "audit-logs" },
   { href: "/admin/settings", label: "الإعدادات", icon: Settings },
 ];

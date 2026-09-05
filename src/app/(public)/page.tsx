@@ -17,6 +17,8 @@ import {
   MapPinned,
   CircleHelp,
   CreditCard,
+  Clock,
+  ArrowLeft,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,6 +36,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { WafirPillBadge } from "@/components/shared/WafirPillBadge";
 import { WafirLogo } from "@/components/shared/WafirLogo";
 import { InstallPromoCard } from "@/components/pwa/PWAInstallButton";
+import { RecentlyViewedFacilities } from "@/components/public/RecentlyViewedFacilities";
 import { useFacilities } from "@/hooks/useFacilities";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { TYPE_LABEL, TYPE_ICON } from "@/lib/constants";
@@ -157,21 +160,21 @@ function FacilityCard({ facility }: { readonly facility: Facility }) {
     : null;
 
   return (
-    <article className="flex flex-col overflow-hidden rounded-xl border border-border/50 bg-card shadow-soft transition-all duration-200 hover:-translate-y-1 hover:shadow-soft-lg">
+    <article className="group flex flex-col overflow-hidden rounded-xl border border-border/50 bg-card shadow-soft transition-all duration-200 hover:-translate-y-1 hover:shadow-soft-lg hover:border-primary/30">
       {/* صورة 16:9 */}
-      <div className="relative aspect-video">
+      <div className="relative aspect-video overflow-hidden">
         {facility.image_url ? (
           <ImageWithSkeleton
             src={facility.image_url}
             alt={facility.name}
             fill
-            className="h-full w-full"
+            className="h-full w-full transition-transform duration-300 group-hover:scale-105"
             skeletonClassName="rounded-none"
           />
         ) : (
           <div
             className={cn(
-              "flex h-full w-full items-center justify-center",
+              "flex h-full w-full items-center justify-center transition-transform duration-300 group-hover:scale-105",
               CATEGORY_PLACEHOLDER[facility.type]
             )}
             role="img"
@@ -180,30 +183,40 @@ function FacilityCard({ facility }: { readonly facility: Facility }) {
             <PlaceholderIcon className="h-12 w-12 opacity-70" aria-hidden="true" />
           </div>
         )}
+        {/* تدرّج خفيف في أسفل الصورة لتحسين قراءة الشارة */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 to-transparent" />
         {maxDiscount !== null && maxDiscount > 0 && (
-          <span className="absolute right-3 top-3 rounded-full bg-accent px-3 py-1.5 text-xs font-extrabold text-accent-foreground shadow-soft">
+          <span className="absolute right-3 top-3 rounded-full bg-accent px-3 py-1.5 text-xs font-extrabold text-accent-foreground shadow-soft ring-2 ring-white/20">
             خصم حتى {maxDiscount}%
           </span>
         )}
+        {/* شارة النوع في أسفل الصورة */}
+        <span
+          className={cn(
+            "absolute bottom-3 left-3 rounded-full px-2.5 py-1 text-[11px] font-bold shadow-soft ring-1 ring-white/10",
+            CATEGORY_BADGE[facility.type]
+          )}
+        >
+          {TYPE_LABEL[facility.type]}
+        </span>
       </div>
 
       {/* المحتوى */}
       <div className="flex flex-1 flex-col gap-3 p-4">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-bold leading-snug text-foreground">
-            {facility.name}
-          </h3>
-          <span
-            className={cn(
-              "shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold",
-              CATEGORY_BADGE[facility.type]
-            )}
-          >
-            {TYPE_LABEL[facility.type]}
-          </span>
-        </div>
-        <Button asChild className="mt-auto w-full rounded-full min-h-[44px]">
-          <Link href={`/facilities/${facility.id}`}>استخدم العرض</Link>
+        <h3 className="font-bold leading-snug text-foreground transition-colors group-hover:text-primary">
+          {facility.name}
+        </h3>
+        {facility.working_hours && (
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <span className="truncate">{facility.working_hours}</span>
+          </p>
+        )}
+        <Button asChild className="mt-auto w-full rounded-full min-h-[44px] gap-2">
+          <Link href={`/facilities/${facility.id}`}>
+            استخدم العرض
+            <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" aria-hidden="true" />
+          </Link>
         </Button>
       </div>
     </article>
@@ -597,6 +610,7 @@ export default function HomePage() {
     <div className="w-full">
       <MemberCardSection />
       <InstallPromoCard portal="customer" />
+      <RecentlyViewedFacilities />
       <div className="mx-auto max-w-7xl space-y-12 px-4 py-10 sm:space-y-14 sm:px-6 sm:py-14">
         <CategoriesAndOffersSection />
         <WhyWafirSection />

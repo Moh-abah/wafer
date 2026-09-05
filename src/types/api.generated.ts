@@ -10,7 +10,14 @@ export type UserRole = 'admin' | 'owner' | 'customer';
 // ─── Shared / Common ──────────────────────────────────
 export interface TokenOut {
   access_token: string;
+  /** Refresh token (7-day JWT) issued alongside the short-lived access token.
+   * Used by the auto-refresh flow to rotate tokens without re-login. */
+  refresh_token?: string | null;
   token_type: string;
+}
+
+export interface RefreshTokenPayload {
+  refresh_token: string;
 }
 
 export interface MessageOut {
@@ -109,6 +116,65 @@ export interface Facility {
   /** تاريخ الموافقة — null قبل الموافقة */
   approved_at?: string | null;
   created_at: string;
+}
+
+// ─── Favorites ────────────────────────────────────────
+export interface FavoriteToggleResponse {
+  facility_id: number;
+  is_favorited: boolean;
+  detail: string;
+}
+
+export interface FavoriteCountResponse {
+  facility_id: number;
+  count: number;
+}
+
+// ─── Reviews ──────────────────────────────────────────
+export interface Review {
+  id: number;
+  facility_id: number;
+  rating: number;
+  comment: string | null;
+  is_published: boolean;
+  helpful_count: number;
+  unhelpful_count: number;
+  created_at: string;
+  updated_at: string;
+  reviewer_name: string;
+  reviewer_id: number;
+}
+
+export interface ReviewCreatePayload {
+  rating: number;
+  comment?: string | null;
+}
+
+export interface ReviewStats {
+  facility_id: number;
+  average: number;
+  total: number;
+  distribution: Record<string, number>;
+}
+
+export interface ReviewDeleteResponse {
+  facility_id: number;
+  deleted: boolean;
+  detail: string;
+}
+
+// ─── My Reviews (account page) ───────────────────────
+export interface MyReview {
+  id: number;
+  facility_id: number;
+  facility_name: string;
+  rating: number;
+  comment: string | null;
+  is_published: boolean;
+  helpful_count: number;
+  unhelpful_count: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface FacilityCreate {
@@ -296,6 +362,27 @@ export interface DashboardStats {
   owners: number;
   products: number;
   available_products: number;
+}
+
+// ─── Admin Profile (/admin/me) ─────────────────────────
+export interface AdminMe {
+  id: number;
+  full_name: string;
+  email: string;
+  phone: string;
+  role: string;
+  is_admin: boolean;
+  created_at: string;
+}
+
+export interface AdminUpdateMePayload {
+  full_name?: string;
+  phone?: string;
+}
+
+export interface AdminChangePasswordPayload {
+  current_password: string;
+  new_password: string;
 }
 
 // ─── Paginated ─────────────────────────────────────────

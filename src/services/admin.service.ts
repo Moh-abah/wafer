@@ -1,9 +1,14 @@
 import { apiClient } from "./api-client";
 import type {
+  AdminChangePasswordPayload,
+  AdminMe,
+  AdminUpdateMePayload,
   AuditLog,
   Facility,
   FacilityType,
+  MessageOut,
   Paginated,
+  Review,
 } from "@/types/api.generated";
 
 /* ════════════════════════════════════════════════════════════════ */
@@ -64,5 +69,79 @@ export const adminService = {
     apiClient.patch<FacilityModerationResult>(
       `/admin/facilities/${id}/reject`,
       { reason }
+    ),
+
+  /* ════════════════════════════════════════════════════════════════ */
+  /*  ملف المشرف الشخصي (/admin/me)                                    */
+  /* ════════════════════════════════════════════════════════════════ */
+
+  /**
+   * جلب بيانات المشرف الحالي.
+   * GET /admin/me → AdminMe
+   */
+  getMe: () => apiClient.get<AdminMe>("/admin/me"),
+
+  /**
+   * تحديث الاسم المعروض و/أو الهاتف للمشرف (البريد غير قابل للتعديل).
+   * PUT /admin/me → AdminMe
+   */
+  updateMe: (payload: AdminUpdateMePayload) =>
+    apiClient.put<AdminMe>("/admin/me", payload),
+
+  /**
+   * تغيير كلمة المرور بعد التحقق من كلمة المرور الحالية.
+   * POST /admin/me/password → MessageOut
+   */
+  changePassword: (payload: AdminChangePasswordPayload) =>
+    apiClient.post<MessageOut>("/admin/me/password", payload),
+
+  /* ════════════════════════════════════════════════════════════════ */
+  /*  إدارة المراجعات (للمشرف)                                         */
+  /* ════════════════════════════════════════════════════════════════ */
+
+  /**
+   * قائمة كل المراجعات (منشورة + غير منشورة) للإشراف.
+   * GET /admin/reviews → {items, total}
+   */
+  listReviews: (params?: {
+    facility_id?: number;
+    is_published?: boolean;
+    limit?: number;
+    offset?: number;
+  }) => {
+    const qs = new URLSearchParams();
+    if (params?.facility_id != null)
+      qs.set("facility_id", String(params.facility_id));
+    if (params?.is_published != null)
+      qs.set("is_published", String(params.is_published));
+    if (params?.limit != null) qs.set("limit", String(params.limit));
+    if (params?.offset != null) qs.set("offset", String(params.offset));
+    const q = qs.toString();
+    return apiClient.get<{ items: Review[]; total: number }>(
+      `/admin/reviews${q ? `?${q}` : ""}`
+    );
+  },
+
+  /**
+   * نشر مراجعة (إظهارها للعامة).
+   * PATCH /admin/reviews/{id}/publish → Review
+   */
+  publishReview: (reviewId: number) =>
+    apiClient.patch<Review>(`/admin/reviews/${reviewId}/publish`),
+
+  /**
+   * إخفاء مراجعة (تبقى في قاعدة البيانات لكن لا تُعرض للعامة).
+   * PATCH /admin/reviews/{id}/unpublish → Review
+   */
+  unpublishReview: (reviewId: number) =>
+    apiClient.patch<Review>(`/admin/reviews/${reviewId}/unpublish`),
+
+  /**
+   * حذف مراجعة نهائياً.
+   * DELETE /admin/reviews/{id} → {detail, deleted}
+   */
+  deleteReview: (reviewId: number) =>
+    apiClient.delete<{ detail: string; deleted: boolean }>(
+      `/admin/reviews/${reviewId}`
     ),
 };
